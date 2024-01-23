@@ -78,7 +78,7 @@ a {
 }
 
 .caption::after {
-  content: 'Bringing the to life';
+  content: 'Bringing the web to life through memorable experiences.';
 }
 
 .button {
@@ -118,10 +118,10 @@ a {
 
 @media (max-width: 800px) {
   .caption::after {
-    content: 'OSS dev collective  for the creative space';
+    content: 'Bringing the web to life.';
   }
   .label::after {
-    content: 'PMNDRS';
+    content: 'Joevin Gracien';
   }
   .container {
     padding: 2em 3em 2em 3em;
