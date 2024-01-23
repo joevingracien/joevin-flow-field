@@ -29,10 +29,10 @@ export default function Page() {
         <div />
         <span className='caption' />
         <div />
-        <a href='https://lusion.co/'>
-          <div className='button'>LET'S TALK</div>
+        <a href='/'>
+          <div className='button'>GET IN TOUCH</div>
         </a>
-        <div className='button gray'>///</div>
+        <div className='button gray'>yo</div>
       </div>
       <Scene style={{ borderRadius: 20 }} />
     </div>
