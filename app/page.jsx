@@ -1,82 +1,143 @@
 'use client'
 
-import dynamic from 'next/dynamic'
-import { Suspense } from 'react'
+import * as THREE from 'three'
+import { useRef, useReducer, useMemo } from 'react'
+import { Canvas, useFrame } from '@react-three/fiber'
+import { useGLTF, MeshTransmissionMaterial, Environment, Lightformer } from '@react-three/drei'
+import { CuboidCollider, BallCollider, Physics, RigidBody } from '@react-three/rapier'
+import { EffectComposer, N8AO } from '@react-three/postprocessing'
+import { easing } from 'maath'
 
-const Logo = dynamic(() => import('@/components/canvas/Examples').then((mod) => mod.Logo), { ssr: false })
-const Dog = dynamic(() => import('@/components/canvas/Examples').then((mod) => mod.Dog), { ssr: false })
-const Duck = dynamic(() => import('@/components/canvas/Examples').then((mod) => mod.Duck), { ssr: false })
-const View = dynamic(() => import('@/components/canvas/View').then((mod) => mod.View), {
-  ssr: false,
-  loading: () => (
-    <div className='flex h-96 w-full flex-col items-center justify-center'>
-      <svg className='-ml-1 mr-3 size-5 animate-spin text-black' fill='none' viewBox='0 0 24 24'>
-        <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
-        <path
-          className='opacity-75'
-          fill='currentColor'
-          d='M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 0 1 4 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
-        />
-      </svg>
-    </div>
-  ),
-})
-const Common = dynamic(() => import('@/components/canvas/View').then((mod) => mod.Common), { ssr: false })
+const accents = ['#4060ff', '#20ffa0', '#ff4060', '#ffcc00']
+const shuffle = (accent = 0) => [
+  { color: '#444', roughness: 0.1 },
+  { color: '#444', roughness: 0.75 },
+  { color: '#444', roughness: 0.75 },
+  { color: 'white', roughness: 0.1 },
+  { color: 'white', roughness: 0.75 },
+  { color: 'white', roughness: 0.1 },
+  { color: accents[accent], roughness: 0.1, accent: true },
+  { color: accents[accent], roughness: 0.75, accent: true },
+  { color: accents[accent], roughness: 0.1, accent: true },
+]
 
 export default function Page() {
   return (
-    <>
-      <div className='mx-auto flex w-full flex-col flex-wrap items-center md:flex-row  lg:w-4/5'>
-        {/* jumbo */}
-        <div className='flex w-full flex-col items-start justify-center p-12 text-center md:w-2/5 md:text-left'>
-          <p className='w-full uppercase'>Next + React Three Fiber Joevin.</p>
-          <h1 className='my-4 text-5xl font-bold leading-tight'>Next 3D Starter</h1>
-          <p className='mb-8 text-2xl leading-normal'>A minimalist starter for React, React-three-fiber and Threejs.</p>
-        </div>
-
-        <div className='w-full text-center md:w-3/5'>
-          <View className='flex h-96 w-full flex-col items-center justify-center'>
-            <Suspense fallback={null}>
-              <Logo route='/blob' scale={0.6} position={[0, 0, 0]} />
-              <Common />
-            </Suspense>
-          </View>
-        </div>
+    <div className='container'>
+      <div className='nav'>
+        <h1 className='label' />
+        <div />
+        <span className='caption' />
+        <div />
+        <a href='mailto:hello@joevingracien.com'>
+          <button className='inline-flex h-12 animate-background-shine items-center justify-center rounded-full border border-slate-800 bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50'>
+            GET IN TOUCH
+          </button>
+        </a>
       </div>
+      <Scene style={{ borderRadius: 20 }} />
+    </div>
+  )
+}
 
-      <div className='mx-auto flex w-full flex-col flex-wrap items-center p-12 md:flex-row  lg:w-4/5'>
-        {/* first row */}
-        <div className='relative h-48 w-full py-6 sm:w-1/2 md:my-12 md:mb-40'>
-          <h2 className='mb-3 text-3xl font-bold leading-none text-gray-800'>Events are propagated</h2>
-          <p className='mb-8 text-gray-600'>Drag, scroll, pinch, and rotate the canvas to explore the 3D scene.</p>
-        </div>
-        <div className='relative my-12 h-48 w-full py-6 sm:w-1/2 md:mb-40'>
-          <View orbit className='relative h-full  sm:h-48 sm:w-full'>
-            <Suspense fallback={null}>
-              <Dog scale={2} position={[0, -1.6, 0]} rotation={[0.0, -0.3, 0]} />
-              <Common color={'lightpink'} />
-            </Suspense>
-          </View>
-        </div>
-        {/* second row */}
-        <div className='relative my-12 h-48 w-full py-6 sm:w-1/2 md:mb-40'>
-          <View orbit className='relative h-full animate-bounce sm:h-48 sm:w-full'>
-            <Suspense fallback={null}>
-              <Duck route='/blob' scale={2} position={[0, -1.6, 0]} />
-              <Common color={'lightblue'} />
-            </Suspense>
-          </View>
-        </div>
-        <div className='w-full p-6 sm:w-1/2'>
-          <h2 className='mb-3 text-3xl font-bold leading-none text-gray-800'>Dom and 3D are synchronized</h2>
-          <p className='mb-8 text-gray-600'>
-            3D Divs are renderer through the View component. It uses gl.scissor to cut the viewport into segments. You
-            tie a view to a tracking div which then controls the position and bounds of the viewport. This allows you to
-            have multiple views with a single, performant canvas. These views will follow their tracking elements,
-            scroll along, resize, etc.
-          </p>
-        </div>
-      </div>
-    </>
+function Scene(props) {
+  const [accent, click] = useReducer((state) => ++state % accents.length, 0)
+  const connectors = useMemo(() => shuffle(accent), [accent])
+  return (
+    <Canvas
+      onClick={click}
+      shadows
+      dpr={[1, 1.5]}
+      gl={{ antialias: false }}
+      camera={{ position: [0, 0, 15], fov: 17.5, near: 1, far: 20 }}
+      {...props}
+    >
+      <color attach='background' args={['#141622']} />
+      <ambientLight intensity={0.4} />
+      <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
+      <Physics gravity={[0, 0, 0]}>
+        <Pointer />
+        {connectors.map((props, i) => (
+          <Connector key={i} {...props} />
+        ))}
+        <Connector position={[10, 10, 5]}>
+          <Model>
+            <MeshTransmissionMaterial
+              clearcoat={1}
+              thickness={0.1}
+              anisotropicBlur={0.1}
+              chromaticAberration={0.1}
+              samples={8}
+              resolution={512}
+            />
+          </Model>
+        </Connector>
+      </Physics>
+      <EffectComposer disableNormalPass multisampling={8}>
+        <N8AO distanceFalloff={1} aoRadius={1} intensity={4} />
+      </EffectComposer>
+      <Environment resolution={256}>
+        <group rotation={[-Math.PI / 3, 0, 1]}>
+          <Lightformer form='circle' intensity={4} rotation-x={Math.PI / 2} position={[0, 5, -9]} scale={2} />
+          <Lightformer form='circle' intensity={2} rotation-y={Math.PI / 2} position={[-5, 1, -1]} scale={2} />
+          <Lightformer form='circle' intensity={2} rotation-y={Math.PI / 2} position={[-5, -1, -1]} scale={2} />
+          <Lightformer form='circle' intensity={2} rotation-y={-Math.PI / 2} position={[10, 1, 0]} scale={8} />
+        </group>
+      </Environment>
+    </Canvas>
+  )
+}
+
+function Connector({
+  position,
+  children,
+  vec = new THREE.Vector3(),
+  scale,
+  r = THREE.MathUtils.randFloatSpread,
+  accent,
+  ...props
+}) {
+  const api = useRef()
+  const pos = useMemo(() => position || [r(10), r(10), r(10)], [])
+  useFrame((state, delta) => {
+    delta = Math.min(0.1, delta)
+    api.current?.applyImpulse(vec.copy(api.current.translation()).negate().multiplyScalar(0.2))
+  })
+  return (
+    <RigidBody linearDamping={4} angularDamping={1} friction={0.1} position={pos} ref={api} colliders={false}>
+      <CuboidCollider args={[0.38, 1.27, 0.38]} />
+      <CuboidCollider args={[1.27, 0.38, 0.38]} />
+      <CuboidCollider args={[0.38, 0.38, 1.27]} />
+      {children ? children : <Model {...props} />}
+      {accent && <pointLight intensity={4} distance={2.5} color={props.color} />}
+    </RigidBody>
+  )
+}
+
+function Pointer({ vec = new THREE.Vector3() }) {
+  const ref = useRef()
+  useFrame(({ mouse, viewport }) => {
+    ref.current?.setNextKinematicTranslation(
+      vec.set((mouse.x * viewport.width) / 2, (mouse.y * viewport.height) / 2, 0),
+    )
+  })
+  return (
+    <RigidBody position={[0, 0, 0]} type='kinematicPosition' colliders={false} ref={ref}>
+      <BallCollider args={[1]} />
+    </RigidBody>
+  )
+}
+
+function Model({ children, color = 'white', roughness = 0, ...props }) {
+  const ref = useRef()
+  const { nodes, materials } = useGLTF('/c-transformed.glb')
+  useFrame((state, delta) => {
+    easing.dampC(ref.current.material.color, color, 0.2, delta)
+  })
+  return (
+    <mesh ref={ref} castShadow receiveShadow scale={10} geometry={nodes.connector.geometry}>
+      <meshStandardMaterial metalness={0.2} roughness={roughness} map={materials.base.map} />
+      {children}
+    </mesh>
   )
 }
