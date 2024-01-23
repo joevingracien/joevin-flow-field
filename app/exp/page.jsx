@@ -30,7 +30,7 @@ export default function Page() {
         <span className='caption' />
         <div />
         <a href='https://lusion.co/'>
-          <div className='button'>VISIT LUSION</div>
+          <div className='button'>LET'S TALK</div>
         </a>
         <div className='button gray'>///</div>
       </div>
@@ -54,9 +54,11 @@ function Scene(props) {
       <color attach='background' args={['#141622']} />
       <ambientLight intensity={0.4} />
       <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
-      <Physics /*debug*/ gravity={[0, 0, 0]}>
+      <Physics gravity={[0, 0, 0]}>
         <Pointer />
-        {connectors.map((props, i) => <Connector key={i} {...props} />) /* prettier-ignore */}
+        {connectors.map((props, i) => (
+          <Connector key={i} {...props} />
+        ))}
         <Connector position={[10, 10, 5]}>
           <Model>
             <MeshTransmissionMaterial
