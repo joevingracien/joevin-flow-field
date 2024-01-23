@@ -68,7 +68,7 @@ a {
 }
 
 .label::after {
-  content: 'POIMANDRES';
+  content: 'JOEVIN';
 }
 
 .caption {
@@ -78,7 +78,7 @@ a {
 }
 
 .caption::after {
-  content: 'Open source developer collective for the creative space';
+  content: 'Bringing the to life';
 }
 
 .button {

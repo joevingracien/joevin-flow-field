@@ -32,7 +32,6 @@ export default function Page() {
         <a href='/'>
           <div className='button'>GET IN TOUCH</div>
         </a>
-        <div className='button gray'>yo</div>
       </div>
       <Scene style={{ borderRadius: 20 }} />
     </div>
