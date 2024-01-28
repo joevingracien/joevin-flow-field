@@ -1,4 +1,4 @@
-import { Layout } from '@/components/dom/Layout'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import '@/global.css'
 
 export const metadata = {
