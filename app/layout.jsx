@@ -10,7 +10,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang='en' className='antialiased'>
       <head />
-      <body>{children}</body>
+      <body>
+        {children}
+        <SpeedInsights />
+      </body>
     </html>
   )
 }
