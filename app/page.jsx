@@ -10,7 +10,7 @@ import { easing } from 'maath'
 
 const accents = ['#4060ff', '#20ffa0', '#ff4060', '#ffcc00']
 const shuffle = (accent = 0) => [
-  { color: '#444', roughness: 0.1 },
+  { color: '#444', roughness: 0.11 },
   { color: '#444', roughness: 0.75 },
   { color: '#444', roughness: 0.75 },
   { color: 'white', roughness: 0.1 },
