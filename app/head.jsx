@@ -2,7 +2,7 @@ const title = 'Joevin Gracien'
 const url = 'https://joevingracien.com'
 const description = 'Bringing the web to life.'
 const author = 'Author'
-const twitter = '@joevin'
+const twitter = '@joevingracien'
 
 export default function Head() {
   return (
