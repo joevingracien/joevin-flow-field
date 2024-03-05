@@ -10,7 +10,9 @@ const Torus = dynamic(() => import('@/components/canvas/Torus'), { ssr: false })
 
 const View = dynamic(() => import('@/components/canvas/View'), { ssr: false, loading: Loading })
 
-gsap.registerPlugin(SplitText)
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(SplitText, useGSAP)
+}
 
 export default function Page() {
   useGSAP(() => {
