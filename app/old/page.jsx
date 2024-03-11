@@ -143,3 +143,14 @@ function Model({ children, color = 'white', roughness = 0, ...props }) {
     </mesh>
   )
 }
+
+const split = new SplitText('.ta', { type: 'chars' }) // Splitting the text into characters
+gsap.from(split.chars, {
+  duration: 0.5,
+  opacity: 0,
+  y: -20,
+  rotationX: 180,
+  transformOrigin: '0% 90% -10',
+  stagger: 0.02,
+  ease: 'expo.out',
+})
