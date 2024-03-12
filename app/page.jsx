@@ -35,7 +35,6 @@ export default function Page() {
         end: 'bottom 30%',
         scrub: 1,
         pin: true,
-        markers: true,
       },
       x: 500,
       duration: 3,
@@ -58,14 +57,14 @@ export default function Page() {
           </View>
         </div>
       </div>
-      <div className='flex h-[90dvh] flex-row content-between items-center justify-center'>
+      {/*   <div className='flex h-[90dvh] flex-row content-between items-center justify-center'>
         <div className='trigger w-full bg-red-600 text-center'>yo</div>
         <div className='heartdiv w-full text-center'>hola</div>
       </div>
       <div className='flex h-[90dvh] flex-row content-between items-center justify-center'>
         <div className='trigger2 w-full text-center'>yo</div>
         <div className='heartdiv w-full text-center'>hola</div>
-      </div>
+      </div> */}
     </main>
   )
 }
