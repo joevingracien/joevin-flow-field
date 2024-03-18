@@ -106,7 +106,12 @@ const ParticlesComponent = () => {
 
   return (
     <>
-      <points geometry={particlesGeometry} material={particlesMaterial} onPointerMove={onPointerMove} />
+      <points
+        geometry={particlesGeometry}
+        material={particlesMaterial}
+        onPointerMove={onPointerMove}
+        position={[0, -1, 0]}
+      />
       <mesh ref={interactivePlaneRef} visible={false}>
         <planeGeometry args={[10, 10]} />
         <meshBasicMaterial side={THREE.DoubleSide} />
