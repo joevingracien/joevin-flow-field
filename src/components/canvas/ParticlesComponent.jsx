@@ -26,7 +26,7 @@ const ParticlesComponent = () => {
   }, [])
 
   const particlesGeometry = useMemo(() => {
-    const geometry = new THREE.PlaneGeometry(15, 15, 256, 256)
+    const geometry = new THREE.PlaneGeometry(10, 10, 256, 256)
     geometry.setAttribute('uv', new THREE.Float32BufferAttribute(geometry.attributes.uv.array, 2))
 
     const intensitiesArray = new Float32Array(geometry.attributes.position.count)
