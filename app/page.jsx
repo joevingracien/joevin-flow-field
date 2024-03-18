@@ -45,16 +45,8 @@ export default function Page() {
     <main>
       <nav className='p-6 font-sans text-2xl'>Joevin Gracien</nav>
       <div className='flex h-[90dvh] flex-col items-center justify-center'>
-        <h1 className='ta font-mono text-7xl font-black'>
-          UX Lover
-          <span className='mt-2 block text-center text-xl font-normal tracking-widest'>bringing the web to life</span>
-        </h1>
         <div className='flex p-10'>
-          <p className='heart m-auto mr-5 text-xl'>Design + Code =</p>
-          <View className='heart size-10'>
-            <ambientLight intensity={1.5} />
-            <Heart className='heart' />
-          </View>
+          <p className='heart m-auto mr-5 text-xl'>Coming soon.</p>
         </div>
       </div>
       {/*   <div className='flex h-[90dvh] flex-row content-between items-center justify-center'>

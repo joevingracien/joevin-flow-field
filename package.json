@@ -1,9 +1,7 @@
 {
-  "name": "react-three-next",
+  "name": "joevingracien.com",
   "version": "2.0.0",
-  "authors": [
-    "Renaud ROHLINGER <https://twitter.com/onirenaud>"
-  ],
+  "authors": ["Joevin Gracien <https://twitter.com/joevingracien>"],
   "license": "MIT",
   "private": true,
   "engines": {
