@@ -9,7 +9,7 @@ const ParticlesComponent = () => {
   const { size, camera } = useThree()
   const aspect = size.width / size.height
 
-  const pictureTexture = useTexture('/img/meparticles.png')
+  const pictureTexture = useTexture('/img/testmeblackz.png')
   const glowTexture = useTexture('/img/glow.png')
 
   const displacement = useMemo(() => {
