@@ -1,7 +1,6 @@
 uniform vec2 uResolution;
 uniform sampler2D uPictureTexture;
 uniform sampler2D uDisplacementTexture;
-uniform float uDisplacementStrength;
 
 attribute float aIntensity;
 attribute float aAngle;
@@ -18,13 +17,12 @@ void main()
     vec3 displacement = vec3(
         cos(aAngle) * 0.2,
         sin(aAngle) * 0.2,
-        0.0
+        1.0
     );
     displacement = normalize(displacement);
     displacement *= displacementIntensity;
     displacement *= 3.0;
     displacement *= aIntensity;
-    displacement *= uDisplacementStrength;
     
     newPosition += displacement;
 

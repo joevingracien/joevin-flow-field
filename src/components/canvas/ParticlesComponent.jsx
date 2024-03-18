@@ -6,7 +6,7 @@ import particlesVertexShader from './shaders/shader.vert'
 import particlesFragmentShader from './shaders/shader.frag'
 
 const ParticlesComponent = () => {
-  const { size, gl, camera } = useThree()
+  const { size, camera } = useThree()
   const aspect = size.width / size.height
 
   const pictureTexture = useTexture('/img/meparticles.png')
@@ -26,7 +26,7 @@ const ParticlesComponent = () => {
   }, [])
 
   const particlesGeometry = useMemo(() => {
-    const geometry = new THREE.PlaneGeometry(10, 10, 256, 256)
+    const geometry = new THREE.PlaneGeometry(15, 15, 256, 256)
     geometry.setAttribute('uv', new THREE.Float32BufferAttribute(geometry.attributes.uv.array, 2))
 
     const intensitiesArray = new Float32Array(geometry.attributes.position.count)
@@ -59,6 +59,7 @@ const ParticlesComponent = () => {
   }, [size, aspect, pictureTexture, displacement.texture])
 
   const interactivePlaneRef = useRef()
+  const raycaster = useRef(new THREE.Raycaster())
   const screenCursor = useRef(new THREE.Vector2(9999, 9999))
   const canvasCursor = useRef(new THREE.Vector2(9999, 9999))
   const canvasCursorPrevious = useRef(new THREE.Vector2(9999, 9999))
@@ -69,12 +70,11 @@ const ParticlesComponent = () => {
   }
 
   useFrame(() => {
-    const raycaster = new THREE.Raycaster()
-    raycaster.setFromCamera(screenCursor.current, camera)
-    const intersections = raycaster.intersectObject(interactivePlaneRef.current)
+    raycaster.current.setFromCamera(screenCursor.current, camera)
+    const intersects = raycaster.current.intersectObject(interactivePlaneRef.current)
 
-    if (intersections.length) {
-      const uv = intersections[0].uv
+    if (intersects.length) {
+      const uv = intersects[0].uv
       canvasCursor.current.x = uv.x * displacement.canvas.width
       canvasCursor.current.y = (1 - uv.y) * displacement.canvas.height
     }
