@@ -88,7 +88,7 @@ export function Particles() {
       )}
       <mesh ref={followMouse}>
         <sphereGeometry args={[0.1, 32, 32]} />
-        <meshBasicMaterial color='red' />
+        <meshBasicMaterial transparent opacity={0} />
       </mesh>
       <points>
         <bufferGeometry>
