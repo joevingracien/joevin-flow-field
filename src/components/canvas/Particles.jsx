@@ -48,19 +48,16 @@ export function Particles() {
   const renderMat = useRef()
   const followMouse = useRef()
 
-  const { viewport, pointer } = useThree()
+  const { viewport } = useThree()
 
   const originalPosition = getDataTexture(SIZE)
 
-  useFrame(() => {
-    const x = (pointer.x * viewport.width) / 2
-    const y = (-pointer.y * viewport.height) / 2
+  useFrame(({ mouse }) => {
+    followMouse.current.position.x = (mouse.x * viewport.width) / 2
+    followMouse.current.position.y = (mouse.y * viewport.height) / 2
 
-    followMouse.current.position.x = x
-    followMouse.current.position.y = y
-
-    simMat.current.uniforms.uMouse.value.x = x
-    simMat.current.uniforms.uMouse.value.y = y
+    simMat.current.uniforms.uMouse.value.x = (mouse.x * viewport.width) / 2
+    simMat.current.uniforms.uMouse.value.y = (mouse.y * viewport.height) / 2
   })
 
   useFrame(({ gl }) => {
