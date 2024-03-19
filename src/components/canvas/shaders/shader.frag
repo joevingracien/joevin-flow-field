@@ -1,14 +1,6 @@
-varying vec3 vColor;
+uniform sampler2D pictureTexture;
 
-void main()
-{
-    vec2 uv = gl_PointCoord;
-    float distanceToCenter = length(uv - vec2(0.5));
-
-    if(distanceToCenter > 0.5)
-        discard;
-
-    gl_FragColor = vec4(vColor, 1.0);
-    #include <tonemapping_fragment>
-    #include <colorspace_fragment>
+void main() {
+  vec3 pictureColor = texture2D(pictureTexture, gl_PointCoord).rgb;
+  gl_FragColor = vec4(pictureColor, 1.0);
 }
