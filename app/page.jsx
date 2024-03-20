@@ -8,9 +8,9 @@ import { Canvas } from '@react-three/fiber'
 const Home = () => {
   return (
     <div className='m-auto h-screen'>
-      <Canvas>
+      <View className='size-full'>
         <Particles />
-      </Canvas>
+      </View>
     </div>
   )
 }
