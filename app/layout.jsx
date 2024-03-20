@@ -31,7 +31,6 @@ export default function RootLayout({ children }) {
         {children}
         <SpeedInsights />
         <Analytics />
-
         <Scene
           style={{
             position: 'fixed',
