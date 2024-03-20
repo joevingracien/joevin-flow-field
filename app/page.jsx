@@ -7,7 +7,7 @@ import { Canvas } from '@react-three/fiber'
 
 const Home = () => {
   return (
-    <div className='m-auto h-screen'>
+    <div className='m-auto flex h-screen'>
       <View className='size-full'>
         <Particles />
       </View>

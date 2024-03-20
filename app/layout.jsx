@@ -1,8 +1,8 @@
 import dynamic from 'next/dynamic'
-import { GeistSans } from 'geist/font/sans'
-import { GeistMono } from 'geist/font/mono'
-import { cn } from '@/libs/utils'
 import '@/global.css'
+import localFont from 'next/font/local'
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 const Scene = dynamic(() => import('@/components/canvas/Scene'), { ssr: false })
 
@@ -11,17 +11,26 @@ export const metadata = {
   description: 'My personal website',
 }
 
+// Font files can be colocated inside of `app`
+const HelveticaNow = localFont({
+  src: '../public/fonts/HelveticaNowVariable.woff2',
+  variable: '--font-helvetica-now-var',
+  display: 'swap',
+})
+
 export default function RootLayout({ children }) {
   return (
-    <html lang='en' className={cn(`${GeistSans.variable} ${GeistMono.variable}`, 'antialiased')}>
+    <html lang='en' className={HelveticaNow.variable}>
       {/*
         <head /> will contain the components returned by the nearest parent
         head.tsx. Find out more at https://beta.nextjs.org/docs/api-reference/file-conventions/head
       */}
       <head />
-      <body>
+      <body className='antialiased'>
         {/* To avoid FOUT with styled-components wrap Layout with StyledComponentsRegistry https://beta.nextjs.org/docs/styling/css-in-js#styled-components */}
         {children}
+        <Analytics />
+        <SpeedInsights />
         <Scene
           style={{
             position: 'fixed',
