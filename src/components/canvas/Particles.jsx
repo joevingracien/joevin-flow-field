@@ -90,7 +90,7 @@ export function Particles() {
         <sphereGeometry args={[0.1, 32, 32]} />
         <meshBasicMaterial transparent opacity={0} />
       </mesh>
-      <points position={[1.5, -1.1, 0]}>
+      <points>
         <bufferGeometry>
           <bufferAttribute attach='attributes-position' count={particles.length / 3} array={particles} itemSize={3} />
           <bufferAttribute attach='attributes-ref' count={ref.length / 3} array={ref} itemSize={2} />
