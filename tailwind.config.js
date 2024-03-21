@@ -6,29 +6,7 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-website)', ...fontFamily.sans],
-      },
-      fontVariationSettings: {
-        'text-bold': {
-          opsz: 12,
-          wght: 700,
-          wdth: 100,
-        },
-        'text-light': {
-          opsz: 12,
-          wght: 300,
-          wdth: 100,
-        },
-        'text-normal': {
-          opsz: 12,
-          wght: 400,
-          wdth: 100,
-        },
-        'display-black': {
-          opsz: 30,
-          wght: 900,
-          wdth: 50,
-        },
+        sans: ['var(--font-helvetica-now-var)', ...fontFamily.sans],
       },
     },
   },

@@ -12,21 +12,21 @@ export const metadata = {
 }
 
 // Font files can be colocated inside of `app`
-/* const HelveticaNow = localFont({
+const HelveticaNow = localFont({
   src: '../public/fonts/HelveticaNowVariable.woff2',
   variable: '--font-helvetica-now-var',
   display: 'swap',
-}) */
+})
 
 export default function RootLayout({ children }) {
   return (
-    <html lang='en'>
+    <html lang='en' className={HelveticaNow.variable}>
       {/*
         <head /> will contain the components returned by the nearest parent
         head.tsx. Find out more at https://beta.nextjs.org/docs/api-reference/file-conventions/head
       */}
       <head />
-      <body className='antialiased'>
+      <body className='m-auto max-w-[1080px] antialiased'>
         {/* To avoid FOUT with styled-components wrap Layout with StyledComponentsRegistry https://beta.nextjs.org/docs/styling/css-in-js#styled-components */}
         {children}
         <SpeedInsights />
