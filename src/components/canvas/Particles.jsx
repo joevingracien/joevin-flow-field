@@ -56,8 +56,8 @@ export function Particles() {
     followMouse.current.position.x = (mouse.x * viewport.width) / 2
     followMouse.current.position.y = (mouse.y * viewport.height) / 2
 
-    simMat.current.uniforms.uMouse.value.x = (mouse.x * viewport.width) / 2
-    simMat.current.uniforms.uMouse.value.y = (mouse.y * viewport.height) / 2
+    followMouse.current.position.set(x, y, 0)
+    simMat.current.uniforms.uMouse.value.set(x, y, 0)
   })
 
   useFrame(({ gl }) => {
