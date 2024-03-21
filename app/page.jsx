@@ -17,15 +17,15 @@ const Home = () => {
       </header>
       <section className='flex h-[90vh]'>
         <div className='max-w- flex max-w-96 flex-col justify-center gap-6'>
-          <h1 className='font-sans text-3xl' style={{ fontVariationSettings: "'wdth' 100, 'wght' 1000" }}>
+          <h1 className='font-sans text-3xl text-zinc-300' style={{ fontVariationSettings: "'wdth' 100, 'wght' 1000" }}>
             Elevating web experiences.
           </h1>
-          <p>
+          <p className='text-zinc-300'>
             Greetings from the digital space! I'm Joevin, your partner in propelling user-centered websites to new
             heights. Together, let's lift beyond the ordinary!
           </p>
         </div>
-        <View className='size-screen absolute bottom-0 right-0 h-[100vh] w-[100vh]'>
+        <View className='size-screen absolute bottom-0 right-0 h-[100vh] w-[100vw]'>
           <Particles />
         </View>
       </section>
