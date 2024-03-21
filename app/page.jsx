@@ -25,7 +25,7 @@ const Home = () => {
             heights. Together, let's lift beyond the ordinary!
           </p>
         </div>
-        <View className='w-full'>
+        <View className='size-screen absolute bottom-0 right-0 h-[100vh] w-[100vh]'>
           <Particles />
         </View>
       </section>
