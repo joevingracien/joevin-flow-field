@@ -16,11 +16,9 @@ const Home = () => {
         </View>
       </header>
       <section className='flex h-[90vh]'>
-        <div className='max-w- flex max-w-96 flex-col justify-center gap-6'>
-          <h1 className='font-sans text-3xl text-zinc-300' style={{ fontVariationSettings: "'wdth' 100, 'wght' 1000" }}>
-            Elevating web experiences.
-          </h1>
-          <p className='text-zinc-300'>
+        <div className=' max-w- flex max-w-[25rem] flex-col justify-center gap-6'>
+          <h1 className='font-sans text-3xl font-bold '>Elevating web experiences.</h1>
+          <p className=' '>
             Greetings from the digital space! I'm Joevin, your partner in propelling user-centered websites to new
             heights. Together, let's lift beyond the ordinary!
           </p>

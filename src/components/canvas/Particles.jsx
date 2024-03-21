@@ -74,7 +74,7 @@ export function Particles() {
 
   return (
     <>
-      <group position={[1.5, -1.1, 0]}>
+      <group position={[1.5, -1.1, 0]} zoom>
         {createPortal(
           <mesh>
             <planeGeometry args={[2, 2]} />
