@@ -53,8 +53,8 @@ export function Particles() {
   const originalPosition = getDataTexture(SIZE)
 
   useFrame(({ mouse }) => {
-    followMouse.current.position.x = (mouse.x * viewport.width) / 2
-    followMouse.current.position.y = (mouse.y * viewport.height) / 2
+    const x = (mouse.x * viewport.width) / 2 + viewport.width / 4
+    const y = (mouse.y * viewport.height) / 2 - viewport.height / 4
 
     followMouse.current.position.set(x, y, 0)
     simMat.current.uniforms.uMouse.value.set(x, y, 0)
@@ -86,11 +86,11 @@ export function Particles() {
         </mesh>,
         scene,
       )}
-      <mesh ref={followMouse}>
+      <mesh ref={followMouse} visible={false}>
         <sphereGeometry args={[0.1, 32, 32]} />
         <meshBasicMaterial transparent opacity={0} />
       </mesh>
-      <points>
+      <points position={[viewport.width / 4, -viewport.height / 4, 0]}>
         <bufferGeometry>
           <bufferAttribute attach='attributes-position' count={particles.length / 3} array={particles} itemSize={3} />
           <bufferAttribute attach='attributes-ref' count={ref.length / 3} array={ref} itemSize={2} />
