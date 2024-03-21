@@ -75,7 +75,7 @@ export function Particles() {
   return (
     <>
       {createPortal(
-        <mesh position={[2, -1.5, -1]}>
+        <mesh>
           <planeGeometry args={[2, 2]} />
           <simulationMaterial
             ref={simMat}
