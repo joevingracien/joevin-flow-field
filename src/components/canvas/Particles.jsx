@@ -74,36 +74,29 @@ export function Particles() {
 
   return (
     <>
-      <group position={[1.5, -1.1, 0]} zoom>
-        {createPortal(
-          <mesh>
-            <planeGeometry args={[2, 2]} />
-            <simulationMaterial
-              ref={simMat}
-              uPosition={originalPosition}
-              uOriginalPosition={originalPosition}
-              uPhotoTexture={photoTexture}
-            />
-          </mesh>,
-          scene,
-        )}
-        <mesh ref={followMouse} position={[-1.5, 1.1, 0]}>
-          <sphereGeometry args={[0.1, 32, 32]} />
-          <meshBasicMaterial transparent opacity={0} />
-        </mesh>
-        <points>
-          <bufferGeometry>
-            <bufferAttribute attach='attributes-position' count={particles.length / 3} array={particles} itemSize={3} />
-            <bufferAttribute attach='attributes-ref' count={ref.length / 3} array={ref} itemSize={2} />
-          </bufferGeometry>
-          <renderMaterial
-            transparent={true}
-            blending={THREE.AdditiveBlending}
-            ref={renderMat}
-            uTexture={photoTexture}
+      {createPortal(
+        <mesh>
+          <planeGeometry args={[2, 2]} />
+          <simulationMaterial
+            ref={simMat}
+            uPosition={originalPosition}
+            uOriginalPosition={originalPosition}
+            uPhotoTexture={photoTexture}
           />
-        </points>
-      </group>
+        </mesh>,
+        scene,
+      )}
+      <mesh ref={followMouse}>
+        <sphereGeometry args={[0.1, 32, 32]} />
+        <meshBasicMaterial transparent opacity={0} />
+      </mesh>
+      <points position={[1.5, -1.1, 0]}>
+        <bufferGeometry>
+          <bufferAttribute attach='attributes-position' count={particles.length / 3} array={particles} itemSize={3} />
+          <bufferAttribute attach='attributes-ref' count={ref.length / 3} array={ref} itemSize={2} />
+        </bufferGeometry>
+        <renderMaterial transparent={true} blending={THREE.AdditiveBlending} ref={renderMat} uTexture={photoTexture} />
+      </points>
     </>
   )
 }
