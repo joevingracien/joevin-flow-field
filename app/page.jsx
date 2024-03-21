@@ -11,7 +11,7 @@ const Home = () => {
     <>
       <header className='my-10 flex h-14 w-full'>
         <View className='z-10 w-14'>
-          <Common controls enableZoom />
+          <Common controls />
           <Moon />
         </View>
       </header>
