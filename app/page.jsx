@@ -23,7 +23,7 @@ const Home = () => {
             new heights. Together, let's lift beyond the ordinary!
           </p>
         </div>
-        <View className='absolute h-[100vh] w-[100vw]'>
+        <View className='absolute left-0 top-0 h-[110vh] w-[130vw]'>
           <Particles />
         </View>
       </section>
