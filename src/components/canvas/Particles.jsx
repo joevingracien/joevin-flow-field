@@ -86,17 +86,24 @@ export function Particles() {
         </mesh>,
         scene,
       )}
-      <mesh ref={followMouse}>
-        <sphereGeometry args={[0.1, 32, 32]} />
-        <meshBasicMaterial transparent opacity={0} />
-      </mesh>
-      <points>
-        <bufferGeometry>
-          <bufferAttribute attach='attributes-position' count={particles.length / 3} array={particles} itemSize={3} />
-          <bufferAttribute attach='attributes-ref' count={ref.length / 3} array={ref} itemSize={2} />
-        </bufferGeometry>
-        <renderMaterial transparent={true} blending={THREE.AdditiveBlending} ref={renderMat} uTexture={photoTexture} />
-      </points>
+      <group position={[2, -1.5, -1]} scale={1.3}>
+        <mesh ref={followMouse}>
+          <sphereGeometry args={[0.1, 32, 32]} />
+          <meshBasicMaterial transparent opacity={0} />
+        </mesh>
+        <points>
+          <bufferGeometry>
+            <bufferAttribute attach='attributes-position' count={particles.length / 3} array={particles} itemSize={3} />
+            <bufferAttribute attach='attributes-ref' count={ref.length / 3} array={ref} itemSize={2} />
+          </bufferGeometry>
+          <renderMaterial
+            transparent={true}
+            blending={THREE.AdditiveBlending}
+            ref={renderMat}
+            uTexture={photoTexture}
+          />
+        </points>
+      </group>
     </>
   )
 }
