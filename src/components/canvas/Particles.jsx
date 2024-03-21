@@ -86,11 +86,11 @@ export function Particles() {
         </mesh>,
         scene,
       )}
-      <mesh ref={followMouse}>
+      <mesh ref={followMouse} position={[-2, 1.5, 0]}>
         <sphereGeometry args={[0.1, 32, 32]} />
         <meshBasicMaterial transparent opacity={0} />
       </mesh>
-      <points position={[2, -1.5, -1]}>
+      <points position={[2, -1.5, -1]} scale={1.3}>
         <bufferGeometry>
           <bufferAttribute attach='attributes-position' count={particles.length / 3} array={particles} itemSize={3} />
           <bufferAttribute attach='attributes-ref' count={ref.length / 3} array={ref} itemSize={2} />
