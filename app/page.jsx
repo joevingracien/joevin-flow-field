@@ -23,7 +23,7 @@ const Home = () => {
             new heights. Together, let's lift beyond the ordinary!
           </p>
         </div>
-        <View className='size-screen -right-100 -bottom-30 absolute h-[100vh] w-[100vw]'>
+        <View className='absolute h-[100vh] w-[100vw]'>
           <Particles />
         </View>
       </section>

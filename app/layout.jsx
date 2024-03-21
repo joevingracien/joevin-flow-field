@@ -20,7 +20,7 @@ const HelveticaNow = localFont({
 
 export default function RootLayout({ children }) {
   return (
-    <html lang='en' className={`${HelveticaNow.variable}`}>
+    <html lang='en' className={`${HelveticaNow.variable} overflow-hidden`}>
       {/*
         <head /> will contain the components returned by the nearest parent
         head.tsx. Find out more at https://beta.nextjs.org/docs/api-reference/file-conventions/head
