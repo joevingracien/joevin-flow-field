@@ -5,6 +5,7 @@ import { Particles } from '@/components/canvas/Particles'
 import View from '@/components/canvas/View'
 import Moon from '@/components/canvas/Moon'
 import Common from '@/components/canvas/Common'
+import { Canvas } from '@react-three/fiber'
 
 const Home = () => {
   return (

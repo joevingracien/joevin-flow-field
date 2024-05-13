@@ -11,7 +11,7 @@ import { useLoader } from '@react-three/fiber'
 import { TextureLoader } from 'three'
 
 export function Particles() {
-  const SIZE = 1024
+  const SIZE = 256
   const photoTexture = useLoader(TextureLoader, '/img/photospaceme.png')
 
   const particles = new Float32Array(SIZE * SIZE * 3)

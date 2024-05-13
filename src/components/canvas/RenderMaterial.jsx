@@ -15,7 +15,7 @@ const RenderMaterial = shaderMaterial(
     vRef = ref;
     vec3 pos = texture2D(uPosition, ref).rgb;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-    gl_PointSize = 1.0;
+    gl_PointSize = 2.0;
   }
   `,
   // fragment shader
