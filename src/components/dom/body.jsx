@@ -1,3 +1,5 @@
+import View from '@/components/canvas/View'
+
 export default function Home() {
   return (
     <>
