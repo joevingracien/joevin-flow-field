@@ -12,7 +12,7 @@ import { TextureLoader } from 'three'
 
 export function Particles() {
   const SIZE = 512
-  const photoTexture = useLoader(TextureLoader, '/img/photospaceme.png')
+  const photoTexture = useLoader(TextureLoader, '/img/photospaceme.webp')
 
   const particles = new Float32Array(SIZE * SIZE * 3)
   for (let i = 0; i < SIZE; i++) {

@@ -5,7 +5,7 @@ import * as THREE from 'three'
 
 const Moon = () => {
   const moonRef = useRef()
-  const moonTexture = useTexture('/moon.jpeg')
+  const moonTexture = useTexture('/img/moon.webp')
 
   useFrame(({ clock }) => {
     const elapsedTime = clock.getElapsedTime()
