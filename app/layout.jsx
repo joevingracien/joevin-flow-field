@@ -27,9 +27,6 @@ export default function RootLayout({ children }) {
       */}
       <head />
       <body className='m-auto max-w-[1080px] overflow-x-hidden antialiased'>
-        {/* To avoid FOUT with styled-components wrap Layout with StyledComponentsRegistry https://beta.nextjs.org/docs/styling/css-in-js#styled-components */}
-        {children}
-        <Analytics />
         <Scene
           style={{
             position: 'fixed',
@@ -40,6 +37,8 @@ export default function RootLayout({ children }) {
             pointerEvents: 'none',
           }}
         />
+        {children}
+        <Analytics />
         <SpeedInsights />
       </body>
     </html>
