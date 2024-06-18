@@ -31,7 +31,7 @@ const Home = () => {
             Greetings from the digital space! <br /> I'm Joevin, your partner in propelling user-centered websites to
             new heights.
           </p>
-          <ul className='mt-6 flex gap-4 text-sm font-bold'>
+          <ul className='mt-6 flex gap-4 text-sm font-semibold'>
             <li className=' text-white'>Strategy</li>
             <li className=' text-white'>Design</li>
             <li className='  text-white'>Development</li>
