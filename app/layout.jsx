@@ -10,7 +10,7 @@ const Scene = dynamic(() => import('@/components/canvas/Scene'), { ssr: false })
 
 export const metadata = {
   title: 'Joevin Gracien',
-  description: 'My personal website',
+  description: 'Design engineer',
 }
 
 export default function RootLayout({ children }) {
