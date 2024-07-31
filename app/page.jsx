@@ -12,7 +12,7 @@ import { Canvas } from '@react-three/fiber'
 const Home = () => {
   return (
     <>
-      <header className='my-10 flex h-14 w-full justify-between'>
+      <header className='my-5 flex h-14 w-full justify-between lg:my-10'>
         <View className='z-10 w-14'>
           <Common controls />
           <Moon />
