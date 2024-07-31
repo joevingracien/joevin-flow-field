@@ -12,7 +12,6 @@ import { TextureLoader } from 'three'
 
 export function Particles() {
   const SIZE = 512
-  const SPREAD = 50.0
   const photoTexture = useLoader(TextureLoader, '/img/photospaceme.webp')
 
   const particles = new Float32Array(SIZE * SIZE * 3)
@@ -33,7 +32,6 @@ export function Particles() {
       ref[k * 2 + 1] = j / (SIZE - 1)
     }
   }
-
   const scene = new THREE.Scene()
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -1, 1)
   let target0 = useFBO(SIZE, SIZE, {
@@ -49,12 +47,10 @@ export function Particles() {
   const simMat = useRef()
   const renderMat = useRef()
   const followMouse = useRef()
-  const timeRef = useRef(0)
 
   const { viewport } = useThree()
 
-  const originalPosition = getDataTexture(SIZE, 0) // No spread for original positions
-  const spreadPosition = getDataTexture(SIZE, SPREAD) // Apply spread
+  const originalPosition = getDataTexture(SIZE)
 
   useFrame(({ mouse }) => {
     followMouse.current.position.x = (mouse.x * viewport.width) / 2
@@ -62,10 +58,6 @@ export function Particles() {
 
     simMat.current.uniforms.uMouse.value.x = (mouse.x * viewport.width) / 2
     simMat.current.uniforms.uMouse.value.y = (mouse.y * viewport.height) / 2
-
-    // Update time uniform
-    timeRef.current += 0.01
-    simMat.current.uniforms.uTime.value = timeRef.current
   })
 
   useFrame(({ gl }) => {
@@ -87,10 +79,9 @@ export function Particles() {
           <planeGeometry args={[2, 2]} />
           <simulationMaterial
             ref={simMat}
-            uPosition={spreadPosition}
+            uPosition={originalPosition}
             uOriginalPosition={originalPosition}
             uPhotoTexture={photoTexture}
-            uTime={0}
           />
         </mesh>,
         scene,
