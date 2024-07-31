@@ -31,15 +31,15 @@ const Home = () => {
             Greetings from the digital space! <br /> I'm Joevin, your partner in propelling user-centered websites to
             new heights.
           </p>
-          <ul className='font-semiboldz-30 mt-6 flex gap-4 text-sm'>
+          <ul className='z-30 mt-6 flex gap-4 text-sm font-semibold'>
             <li className=' text-white'>Strategy</li>
             <li className=' text-white'>Design</li>
             <li className='  text-white'>Development</li>
           </ul>
         </div>
-        <Canvas className='absolute left-0 top-0 h-[110vh] w-[130vw]'>
+        <View className='absolute left-0 top-0 h-[110vh] w-[130vw]'>
           <Particles />
-        </Canvas>
+        </View>
       </section>
     </>
   )
