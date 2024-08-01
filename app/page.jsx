@@ -24,14 +24,14 @@ const Home = () => {
           </Link>
         </div>
       </header>
-      <section className='flex h-[90vh]'>
-        <div className=' -mt-32 flex max-w-[25rem] flex-col justify-center gap-6'>
+      <section className='flex h-[80vh] lg:h-[90vh]'>
+        <div className=' -mt-32 flex max-w-[25rem] flex-col justify-end gap-6 md:justify-center '>
           <h1 className='z-30 font-sans text-3xl font-bold text-white'>Elevating web experiences</h1>
           <p className='z-30 '>
             Greetings from the digital space! <br /> I'm Joevin, your partner in propelling user-centered websites to
             new heights.
           </p>
-          <ul className='z-30 mt-6 flex gap-4 text-sm font-semibold'>
+          <ul className='z-30 mt-3 flex gap-4 text-sm font-semibold lg:mt-6'>
             <li className=' text-white'>Strategy</li>
             <li className=' text-white'>Design</li>
             <li className='  text-white'>Development</li>
