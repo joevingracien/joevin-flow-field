@@ -37,7 +37,7 @@ const Home = () => {
             <li className='  text-white'>Development</li>
           </ul>
         </div>
-        <View className='absolute left-0 top-0 h-[110vh] w-[130vw]'>
+        <View className='fixed left-0 top-0 h-[110vh] w-[130vw]'>
           <Particles />
         </View>
       </section>
