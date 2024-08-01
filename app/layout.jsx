@@ -31,7 +31,6 @@ export default function RootLayout({ children }) {
             left: 0,
             width: '100vw',
             height: '100vh',
-            pointerEvents: 'none',
           }}
         />
         {children}
