@@ -20,12 +20,12 @@ const Home = () => {
         <div className='z-40 my-auto flex gap-4'>
           <p>hello@joevingracien.com</p>
           <Link href='https://x.com/JoevinGracien' target='_blank'>
-            <Image src='/icons/xlogo.svg' width={20} height={20} />
+            <Image src='/icons/xlogo.svg' width={20} height={20} alt='X (formely Twitter) logo' />
           </Link>
         </div>
       </header>
       <section className='flex h-[80vh] lg:h-[90vh]'>
-        <div className=' -mt-32 flex max-w-[25rem] flex-col justify-end gap-6 md:justify-center '>
+        <div className=' -mt-32 flex max-w-[25rem] flex-col justify-end gap-6 md:justify-center'>
           <h1 className='z-30 font-sans text-3xl font-bold text-white'>Elevating web experiences</h1>
           <p className='z-30 '>
             Greetings from the digital space! <br /> I'm Joevin, your partner in propelling user-centered websites to
