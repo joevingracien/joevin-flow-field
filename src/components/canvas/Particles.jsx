@@ -53,33 +53,39 @@ export function Particles() {
   const originalPosition = getDataTexture(SIZE)
 
   const mouse = useRef(new THREE.Vector2(0, 0))
+  const isPointerDown = useRef(false)
 
   useEffect(() => {
-    const handleTouchMove = (event) => {
-      event.preventDefault()
-      const touch = event.touches[0]
-      mouse.current.x = (touch.clientX / size.width) * 2 - 1
-      mouse.current.y = -(touch.clientY / size.height) * 2 + 1
+    const handlePointerMove = (event) => {
+      if (isPointerDown.current) {
+        mouse.current.x = (event.clientX / size.width) * 2 - 1
+        mouse.current.y = -(event.clientY / size.height) * 2 + 1
+      }
     }
 
-    const handleTouchStart = (event) => {
-      event.preventDefault()
-      const touch = event.touches[0]
-      mouse.current.x = (touch.clientX / size.width) * 2 - 1
-      mouse.current.y = -(touch.clientY / size.height) * 2 + 1
+    const handlePointerDown = (event) => {
+      isPointerDown.current = true
+      mouse.current.x = (event.clientX / size.width) * 2 - 1
+      mouse.current.y = -(event.clientY / size.height) * 2 + 1
     }
 
-    window.addEventListener('touchmove', handleTouchMove, { passive: false })
-    window.addEventListener('touchstart', handleTouchStart, { passive: false })
+    const handlePointerUp = () => {
+      isPointerDown.current = false
+    }
+
+    window.addEventListener('pointermove', handlePointerMove)
+    window.addEventListener('pointerdown', handlePointerDown)
+    window.addEventListener('pointerup', handlePointerUp)
 
     return () => {
-      window.removeEventListener('touchmove', handleTouchMove)
-      window.removeEventListener('touchstart', handleTouchStart)
+      window.removeEventListener('pointermove', handlePointerMove)
+      window.removeEventListener('pointerdown', handlePointerDown)
+      window.removeEventListener('pointerup', handlePointerUp)
     }
   }, [size])
 
   useFrame(() => {
-    if (followMouse.current) {
+    if (followMouse.current && (isPointerDown.current || !('ontouchstart' in window))) {
       followMouse.current.position.x = (mouse.current.x * viewport.width) / 2
       followMouse.current.position.y = (mouse.current.y * viewport.height) / 2
 
