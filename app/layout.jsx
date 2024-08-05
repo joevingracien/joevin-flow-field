@@ -22,7 +22,7 @@ export default function RootLayout({ children }) {
       */}
       <head />
       <body
-        className={`${GeistSans.variable} ${GeistMono.variable} m-auto max-w-[1080px] overflow-hidden px-5 font-sans text-white antialiased`}
+        className={`${GeistSans.variable} ${GeistMono.variable} pointer-events-none m-auto max-w-[1080px] overflow-hidden px-5 font-sans text-white antialiased`}
       >
         <Scene
           style={{
