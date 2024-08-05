@@ -1,4 +1,4 @@
-import React, { useRef, useMemo } from 'react'
+import React, { useRef, useMemo, useEffect } from 'react'
 import './RenderMaterial'
 import './SimulationMaterial'
 import { getDataTexture } from './getDataTexture'
@@ -16,6 +16,13 @@ export function Particles() {
 
   const SIZE = useMemo(() => Math.floor(512 * Math.max(1, dpr)), [dpr])
   const photoTexture = useLoader(TextureLoader, '/img/photospaceme.webp')
+
+  const isSafari = useRef(false)
+
+  useEffect(() => {
+    // Safari detection
+    isSafari.current = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+  }, [])
 
   const particles = useMemo(() => {
     const p = new Float32Array(SIZE * SIZE * 3)
@@ -70,6 +77,9 @@ export function Particles() {
     if (simMat.current) {
       simMat.current.uniforms.uMouse.value.x = mouseX
       simMat.current.uniforms.uMouse.value.y = mouseY
+
+      // Increase animation speed for Safari
+      simMat.current.uniforms.uVelocityFactor.value = isSafari.current ? 2.0 : 1.0
     }
 
     gl.setRenderTarget(renderTargets.current[0])
@@ -95,6 +105,7 @@ export function Particles() {
             uPosition={originalPosition}
             uOriginalPosition={originalPosition}
             uPhotoTexture={photoTexture}
+            uVelocityFactor={1.0}
           />
         </mesh>,
         scene,
@@ -109,7 +120,7 @@ export function Particles() {
           blending={THREE.AdditiveBlending}
           ref={renderMat}
           uTexture={photoTexture}
-          uPointSize={1 / dpr} // Adjust point size based on DPR
+          uPointSize={1 / dpr}
         />
       </points>
     </>
