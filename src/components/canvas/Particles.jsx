@@ -53,39 +53,50 @@ export function Particles() {
   const originalPosition = getDataTexture(SIZE)
 
   const mouse = useRef(new THREE.Vector2(0, 0))
-  const isPointerDown = useRef(false)
+  const isTouch = useRef(false)
+  const isTouchActive = useRef(false)
 
   useEffect(() => {
-    const handlePointerMove = (event) => {
-      if (isPointerDown.current) {
+    const handleMouseMove = (event) => {
+      if (!isTouch.current) {
         mouse.current.x = (event.clientX / size.width) * 2 - 1
         mouse.current.y = -(event.clientY / size.height) * 2 + 1
       }
     }
 
-    const handlePointerDown = (event) => {
-      isPointerDown.current = true
-      mouse.current.x = (event.clientX / size.width) * 2 - 1
-      mouse.current.y = -(event.clientY / size.height) * 2 + 1
+    const handleTouchMove = (event) => {
+      if (isTouchActive.current) {
+        mouse.current.x = (event.touches[0].clientX / size.width) * 2 - 1
+        mouse.current.y = -(event.touches[0].clientY / size.height) * 2 + 1
+      }
     }
 
-    const handlePointerUp = () => {
-      isPointerDown.current = false
+    const handleTouchStart = (event) => {
+      isTouch.current = true
+      isTouchActive.current = true
+      mouse.current.x = (event.touches[0].clientX / size.width) * 2 - 1
+      mouse.current.y = -(event.touches[0].clientY / size.height) * 2 + 1
     }
 
-    window.addEventListener('pointermove', handlePointerMove)
-    window.addEventListener('pointerdown', handlePointerDown)
-    window.addEventListener('pointerup', handlePointerUp)
+    const handleTouchEnd = () => {
+      isTouchActive.current = false
+    }
+
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('touchmove', handleTouchMove)
+    window.addEventListener('touchstart', handleTouchStart)
+    window.addEventListener('touchend', handleTouchEnd)
 
     return () => {
-      window.removeEventListener('pointermove', handlePointerMove)
-      window.removeEventListener('pointerdown', handlePointerDown)
-      window.removeEventListener('pointerup', handlePointerUp)
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('touchmove', handleTouchMove)
+      window.removeEventListener('touchstart', handleTouchStart)
+      window.removeEventListener('touchend', handleTouchEnd)
     }
   }, [size])
 
   useFrame(() => {
-    if (followMouse.current && (isPointerDown.current || !('ontouchstart' in window))) {
+    if (followMouse.current && (!isTouch.current || isTouchActive.current)) {
       followMouse.current.position.x = (mouse.current.x * viewport.width) / 2
       followMouse.current.position.y = (mouse.current.y * viewport.height) / 2
 
