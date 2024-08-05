@@ -1,8 +1,8 @@
+import React, { useRef, useMemo } from 'react'
 import './RenderMaterial'
 import './SimulationMaterial'
 import { getDataTexture } from './getDataTexture'
 import { createPortal } from '@react-three/fiber'
-import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useFBO } from '@react-three/drei'
@@ -11,65 +11,78 @@ import { useLoader } from '@react-three/fiber'
 import { TextureLoader } from 'three'
 
 export function Particles() {
-  const SIZE = 512
+  const { viewport, gl } = useThree()
+  const dpr = gl.getPixelRatio()
+
+  const SIZE = useMemo(() => Math.floor(512 * Math.max(1, dpr)), [dpr])
   const photoTexture = useLoader(TextureLoader, '/img/photospaceme.webp')
 
-  const particles = new Float32Array(SIZE * SIZE * 3)
-  for (let i = 0; i < SIZE; i++) {
-    for (let j = 0; j < SIZE; j++) {
-      const k = i * SIZE + j
-      particles[k * 3 + 0] = (5 * i) / SIZE
-      particles[k * 3 + 1] = (5 * j) / SIZE
-      particles[k * 3 + 2] = 0
+  const particles = useMemo(() => {
+    const p = new Float32Array(SIZE * SIZE * 3)
+    for (let i = 0; i < SIZE; i++) {
+      for (let j = 0; j < SIZE; j++) {
+        const k = i * SIZE + j
+        p[k * 3 + 0] = (5 * i) / SIZE
+        p[k * 3 + 1] = (5 * j) / SIZE
+        p[k * 3 + 2] = 0
+      }
     }
-  }
+    return p
+  }, [SIZE])
 
-  const ref = new Float32Array(SIZE * SIZE * 2)
-  for (let i = 0; i < SIZE; i++) {
-    for (let j = 0; j < SIZE; j++) {
-      const k = i * SIZE + j
-      ref[k * 2 + 0] = i / (SIZE - 1)
-      ref[k * 2 + 1] = j / (SIZE - 1)
+  const ref = useMemo(() => {
+    const r = new Float32Array(SIZE * SIZE * 2)
+    for (let i = 0; i < SIZE; i++) {
+      for (let j = 0; j < SIZE; j++) {
+        const k = i * SIZE + j
+        r[k * 2 + 0] = i / (SIZE - 1)
+        r[k * 2 + 1] = j / (SIZE - 1)
+      }
     }
-  }
-  const scene = new THREE.Scene()
-  const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -1, 1)
-  let target0 = useFBO(SIZE, SIZE, {
-    magFilter: THREE.NearestFilter,
-    minFilter: THREE.NearestFilter,
-    type: THREE.FloatType,
-  })
-  let target1 = useFBO(SIZE, SIZE, {
-    magFilter: THREE.NearestFilter,
-    minFilter: THREE.NearestFilter,
-    type: THREE.FloatType,
-  })
+    return r
+  }, [SIZE])
+
+  const scene = useMemo(() => new THREE.Scene(), [])
+  const camera = useMemo(() => new THREE.OrthographicCamera(-1, 1, 1, -1, -1, 1), [])
+
+  const renderTargets = useRef([
+    useFBO(SIZE, SIZE, {
+      magFilter: THREE.NearestFilter,
+      minFilter: THREE.NearestFilter,
+      type: THREE.FloatType,
+    }),
+    useFBO(SIZE, SIZE, {
+      magFilter: THREE.NearestFilter,
+      minFilter: THREE.NearestFilter,
+      type: THREE.FloatType,
+    }),
+  ])
+
   const simMat = useRef()
   const renderMat = useRef()
-  const followMouse = useRef()
 
-  const { viewport } = useThree()
+  const originalPosition = useMemo(() => getDataTexture(SIZE), [SIZE])
 
-  const originalPosition = getDataTexture(SIZE)
+  useFrame(({ mouse, gl }) => {
+    const mouseX = (mouse.x * viewport.width) / 2
+    const mouseY = (mouse.y * viewport.height) / 2
 
-  useFrame(({ mouse }) => {
-    followMouse.current.position.x = (mouse.x * viewport.width) / 2
-    followMouse.current.position.y = (mouse.y * viewport.height) / 2
+    if (simMat.current) {
+      simMat.current.uniforms.uMouse.value.x = mouseX
+      simMat.current.uniforms.uMouse.value.y = mouseY
+    }
 
-    simMat.current.uniforms.uMouse.value.x = (mouse.x * viewport.width) / 2
-    simMat.current.uniforms.uMouse.value.y = (mouse.y * viewport.height) / 2
-  })
-
-  useFrame(({ gl }) => {
-    gl.setRenderTarget(target0)
+    gl.setRenderTarget(renderTargets.current[0])
     gl.render(scene, camera)
     gl.setRenderTarget(null)
-    renderMat.current.uniforms.uPosition.value = target1.texture
-    simMat.current.uniforms.uPosition.value = target0.texture
 
-    let temp = target0
-    target0 = target1
-    target1 = temp
+    if (renderMat.current && simMat.current) {
+      renderMat.current.uniforms.uPosition.value = renderTargets.current[1].texture
+      simMat.current.uniforms.uPosition.value = renderTargets.current[0].texture
+    }
+
+    // Swap render targets
+    renderTargets.current.reverse()
   })
 
   return (
@@ -86,16 +99,18 @@ export function Particles() {
         </mesh>,
         scene,
       )}
-      <mesh ref={followMouse} position={[-2, 1.5, 0]}>
-        <sphereGeometry args={[0.1, 32, 32]} />
-        <meshBasicMaterial transparent opacity={0} />
-      </mesh>
       <points>
         <bufferGeometry>
           <bufferAttribute attach='attributes-position' count={particles.length / 3} array={particles} itemSize={3} />
-          <bufferAttribute attach='attributes-ref' count={ref.length / 3} array={ref} itemSize={2} />
+          <bufferAttribute attach='attributes-ref' count={ref.length / 2} array={ref} itemSize={2} />
         </bufferGeometry>
-        <renderMaterial transparent={true} blending={THREE.AdditiveBlending} ref={renderMat} uTexture={photoTexture} />
+        <renderMaterial
+          transparent={true}
+          blending={THREE.AdditiveBlending}
+          ref={renderMat}
+          uTexture={photoTexture}
+          uPointSize={1 / dpr} // Adjust point size based on DPR
+        />
       </points>
     </>
   )

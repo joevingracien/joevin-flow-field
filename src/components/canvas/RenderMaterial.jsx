@@ -5,17 +5,19 @@ const RenderMaterial = shaderMaterial(
   {
     uPosition: null,
     uTexture: null,
+    uPointSize: 1.0,
   },
   // vertex shader
   `
   attribute vec2 ref;
   varying vec2 vRef;
   uniform sampler2D uPosition;
+  uniform float uPointSize;
   void main() {
     vRef = ref;
     vec3 pos = texture2D(uPosition, ref).rgb;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-    gl_PointSize = 1.5;
+    gl_PointSize = uPointSize;
   }
   `,
   // fragment shader
@@ -23,7 +25,7 @@ const RenderMaterial = shaderMaterial(
   varying vec2 vRef;
   uniform sampler2D uTexture;
   void main() {
-    vec2 uv = vec2( vRef.y, vRef.x);
+    vec2 uv = vec2(vRef.y, vRef.x);
     vec4 textureColor = texture2D(uTexture, uv);
     gl_FragColor.rgba = textureColor;
   }
