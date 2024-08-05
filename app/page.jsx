@@ -25,7 +25,7 @@ const Home = () => {
         </div>
       </header>
       <section className='flex h-[80svh] lg:h-[90vh]'>
-        <div className=' -mt-32 flex max-w-[25rem] flex-col justify-end gap-6 md:justify-center'>
+        <div className=' pointer-events-none -mt-32 flex max-w-[25rem] flex-col justify-end gap-6 md:justify-center'>
           <h1 className='z-30 font-sans text-3xl font-bold text-white'>Elevating web experiences</h1>
           <p className='z-30 '>
             Greetings from the digital space! <br /> I'm Joevin, your partner in propelling user-centered websites to
