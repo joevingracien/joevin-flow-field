@@ -1,8 +1,8 @@
+import React, { useRef, useEffect } from 'react'
 import './RenderMaterial'
 import './SimulationMaterial'
 import { getDataTexture } from './getDataTexture'
 import { createPortal } from '@react-three/fiber'
-import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useFBO } from '@react-three/drei'
@@ -48,16 +48,44 @@ export function Particles() {
   const renderMat = useRef()
   const followMouse = useRef()
 
-  const { viewport } = useThree()
+  const { viewport, size } = useThree()
 
   const originalPosition = getDataTexture(SIZE)
 
-  useFrame(({ mouse }) => {
-    followMouse.current.position.x = (mouse.x * viewport.width) / 2
-    followMouse.current.position.y = (mouse.y * viewport.height) / 2
+  const mouse = useRef(new THREE.Vector2(0, 0))
 
-    simMat.current.uniforms.uMouse.value.x = (mouse.x * viewport.width) / 2
-    simMat.current.uniforms.uMouse.value.y = (mouse.y * viewport.height) / 2
+  useEffect(() => {
+    const handleTouchMove = (event) => {
+      event.preventDefault()
+      const touch = event.touches[0]
+      mouse.current.x = (touch.clientX / size.width) * 2 - 1
+      mouse.current.y = -(touch.clientY / size.height) * 2 + 1
+    }
+
+    const handleTouchStart = (event) => {
+      event.preventDefault()
+      const touch = event.touches[0]
+      mouse.current.x = (touch.clientX / size.width) * 2 - 1
+      mouse.current.y = -(touch.clientY / size.height) * 2 + 1
+    }
+
+    window.addEventListener('touchmove', handleTouchMove, { passive: false })
+    window.addEventListener('touchstart', handleTouchStart, { passive: false })
+
+    return () => {
+      window.removeEventListener('touchmove', handleTouchMove)
+      window.removeEventListener('touchstart', handleTouchStart)
+    }
+  }, [size])
+
+  useFrame(() => {
+    if (followMouse.current) {
+      followMouse.current.position.x = (mouse.current.x * viewport.width) / 2
+      followMouse.current.position.y = (mouse.current.y * viewport.height) / 2
+
+      simMat.current.uniforms.uMouse.value.x = (mouse.current.x * viewport.width) / 2
+      simMat.current.uniforms.uMouse.value.y = (mouse.current.y * viewport.height) / 2
+    }
   })
 
   useFrame(({ gl }) => {
