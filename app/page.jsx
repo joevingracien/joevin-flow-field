@@ -25,18 +25,19 @@ const Home = () => {
         </div>
       </header>
       <section className='flex h-[80svh] lg:h-[90vh]'>
-        <div className=' pointer-events-none -mt-32 flex max-w-[25rem] flex-col justify-end gap-6 md:justify-center'>
-          <h1 className='z-30 font-sans text-3xl font-bold text-white'>Elevating web experiences</h1>
-          <p className='z-30 '>
+        <div className='pointer-events-none z-30 -mt-32 flex max-w-[25rem] flex-col justify-end gap-6 md:justify-center'>
+          <h1 className=' font-sans text-3xl font-bold text-white'>Elevating web experiences</h1>
+          <p className=''>
             Greetings from the digital space! <br /> I'm Joevin, your partner in propelling user-centered websites to
             new heights.
           </p>
-          <ul className='z-30 mt-3 flex gap-4 text-sm font-semibold lg:mt-6'>
+          <ul className='mt-3 flex gap-4 text-sm font-semibold lg:mt-6'>
             <li className=' text-white'>Strategy</li>
             <li className=' text-white'>Design</li>
             <li className='  text-white'>Development</li>
           </ul>
         </div>
+        <div className='absolute -left-40 z-20 h-[110vh] w-[230vw] bg-gradient-to-b from-transparent to-black lg:hidden'></div>
         <View className='fixed left-0 top-0 h-[110vh] w-[130vw]'>
           <Particles />
         </View>
