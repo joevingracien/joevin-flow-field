@@ -37,7 +37,7 @@ const Home = () => {
             <li className='  text-white'>Development</li>
           </ul>
         </div>
-        <div className='absolute -left-40 z-20 h-[110vh] w-[230vw] bg-gradient-to-b from-transparent to-black lg:hidden'></div>
+        <div className='pointer-events-none absolute -left-40 z-20 h-[110vh] w-[230vw] bg-gradient-to-b from-transparent to-black lg:hidden'></div>
         <View className='fixed left-0 top-0 h-[110vh] w-[130vw]'>
           <Particles />
         </View>
