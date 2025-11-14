@@ -1,9 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Canvas } from "@react-three/fiber";
-import { OrthographicCamera } from "@react-three/drei";
+import WebGPUScene from "@/components/canvas/WebGPUScene";
 import Gravity from "@/components/canvas/Gravity";
 import { Component, ReactNode } from "react";
-import * as THREE from "three/webgpu";
 
 export const Route = createFileRoute("/")({ component: Home });
 
@@ -31,7 +29,7 @@ class ErrorBoundary extends Component<
 
 function Home() {
   return (
-    <section className="relative flex h-[80svh] lg:h-[90vh] bg-black">
+    <section className="relative flex h-screen w-screen bg-black">
       <ErrorBoundary
         fallback={
           <div className="flex h-full w-full items-center justify-center text-white/50">
@@ -39,22 +37,14 @@ function Home() {
           </div>
         }
       >
-        <Canvas
-          className="h-screen w-screen absolute inset-0"
-          gl={async (props: any) => {
-            const renderer = new THREE.WebGPURenderer({
-              canvas: props.canvas,
-              antialias: true,
-              forceWebGL: false,
-            });
-            await renderer.init();
-            return renderer as any;
+        <WebGPUScene
+          style={{
+            position: "fixed",
+            inset: 0,
           }}
-          dpr={[1, 2]}
         >
-          <OrthographicCamera makeDefault position={[0, 0, 1]} />
           <Gravity />
-        </Canvas>
+        </WebGPUScene>
       </ErrorBoundary>
     </section>
   );
