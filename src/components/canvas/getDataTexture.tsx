@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 
-export function getDataTexture(size) {
+export function getDataTexture(size: number) {
   let number = size * size
   const data = new Float32Array(4 * number)
   for (let i = 0; i < size; i++) {

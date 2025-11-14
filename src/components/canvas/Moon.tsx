@@ -1,13 +1,14 @@
 import React, { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { OrbitControls, useTexture } from '@react-three/drei'
+import { useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 
-const Moon = () => {
-  const moonRef = useRef()
+export default function Moon() {
+  const moonRef = useRef<THREE.Mesh>(null)
   const moonTexture = useTexture('/img/moon.webp')
 
   useFrame(({ clock }) => {
+    if (!moonRef.current) return
     const elapsedTime = clock.getElapsedTime()
     moonRef.current.rotation.y = elapsedTime * 0.1
   })
@@ -23,5 +24,3 @@ const Moon = () => {
     </>
   )
 }
-
-export default Moon

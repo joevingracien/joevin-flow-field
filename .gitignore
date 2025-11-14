@@ -4,9 +4,14 @@
 # testing
 /coverage
 
-# next.js
-/.next/
-/out/
+# TanStack Start
+/.tanstack
+/.output
+/dist
+
+# Cloudflare
+/.wrangler
+/wrangler.toml.bak
 
 # production
 /build
@@ -21,20 +26,15 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
+.env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.dev.vars
 
-# vercel
-.vercel
-
-# next-pwa
-/public/workbox-*.js
-/public/sw.js
-
-# prefer yarn than npm
-package-lock.json
+# generated
+src/routeTree.gen.ts
 
 report.*.json
 
