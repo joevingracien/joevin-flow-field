@@ -58,6 +58,8 @@
       "@react-three/fiber": "^9.4.0"
     },
     "@react-three/postprocessing": {
+      "react": "$react",
+      "react-dom": "$react-dom",
       "@react-three/fiber": "^9.4.0"
     },
     "@react-spring/animated": {
