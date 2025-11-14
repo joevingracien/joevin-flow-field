@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Canvas } from "@react-three/fiber";
-import { ParticlesWebGPU } from "@/components/canvas/ParticlesWebGPU";
+import { ParticlesWebGPU } from "@/components/canvas/ParticlesWebGPU-simple";
 import { Component, ReactNode } from "react";
 import * as THREE from "three/webgpu";
 
