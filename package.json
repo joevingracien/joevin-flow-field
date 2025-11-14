@@ -53,6 +53,8 @@
   },
   "overrides": {
     "@react-three/drei": {
+      "react": "$react",
+      "react-dom": "$react-dom",
       "@react-three/fiber": "^9.4.0"
     },
     "@react-spring/animated": {
