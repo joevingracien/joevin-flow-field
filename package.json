@@ -30,6 +30,7 @@
     "clsx": "^2.1.0",
     "glsl-random": "^0.0.5",
     "motion": "^12.23.24",
+    "nice-color-palettes": "^4.0.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "tailwind-merge": "^3.3.1",
