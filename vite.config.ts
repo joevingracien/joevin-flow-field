@@ -7,6 +7,10 @@ import { cloudflare } from '@cloudflare/vite-plugin'
 import tailwindcss from '@tailwindcss/vite'
 import glsl from 'vite-plugin-glsl'
 
+const ReactCompilerConfig = {
+  /* ... */
+}
+
 export default defineConfig({
   server: {
     port: 3000,
@@ -20,7 +24,11 @@ export default defineConfig({
     tsConfigPaths(),
     tanstackStart(),
     // react's vite plugin must come after start's vite plugin
-    viteReact(),
+    viteReact({
+      babel: {
+        plugins: [['babel-plugin-react-compiler', ReactCompilerConfig]],
+      },
+    }),
     tailwindcss(),
     glsl(),
   ],

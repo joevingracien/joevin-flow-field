@@ -1,7 +1,7 @@
 'use client'
 
 import { useFrame, useThree } from '@react-three/fiber'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three/webgpu'
 import {
   select,
@@ -68,6 +68,7 @@ const generateColorPalette = (particlesCount: number): Float32Array => {
  *
  * Uses WebGPU compute shaders for high-performance particle simulation.
  * Supports interactive mouse control and custom TSL shader functions.
+ * Optimized by React Compiler - automatic memoization applied.
  */
 export const FlowField = ({
   flowFieldFn,
@@ -92,13 +93,10 @@ export const FlowField = ({
   const gl = useThree((state) => state.gl)
   const { width, height } = useThree((state) => state.size)
 
-  // Calculate flow field size
-  const FLOW_FIELD_SIZE = useMemo(() => columns * rows * depth, [columns, rows, depth])
+  const FLOW_FIELD_SIZE = columns * rows * depth
 
-  // Create uniform for mouse position that can be updated each frame
+  // Keep useMemo for WebGPU resources - must be stable object references
   const mouseUniform = useMemo(() => uniform(new THREE.Vector2(0.5, 0.5)), [])
-
-  // Create storage buffer for flow field angles
   const flowFieldBuffer = useMemo(
     () => storage(new THREE.StorageInstancedBufferAttribute(FLOW_FIELD_SIZE, 1), 'float', FLOW_FIELD_SIZE),
     [FLOW_FIELD_SIZE],
@@ -283,23 +281,17 @@ export const FlowField = ({
     }
   }, [randomise, flowFieldFn, rows, columns, depth, flowFieldBuffer, params, FLOW_FIELD_SIZE, gl])
 
-  // Memoize flow field update params to avoid recreating on every frame
-  const flowFieldUpdateParams = useMemo(() => {
-    return mousePosition ? { ...params, attractorPos: mouseUniform } : params
-  }, [params, mousePosition, mouseUniform])
-
-  // Memoize flow field update compute function
-  const flowFieldUpdateCompute = useMemo(() => {
-    if (!updateFlowField) return null
-
-    return flowFieldFn({
-      rows,
-      columns,
-      depth,
-      flowFieldBuffer,
-      params: flowFieldUpdateParams,
-    }).compute(FLOW_FIELD_SIZE)
-  }, [updateFlowField, rows, columns, depth, flowFieldBuffer, flowFieldUpdateParams, FLOW_FIELD_SIZE])
+  // React Compiler will memoize these computations
+  const flowFieldUpdateParams = mousePosition ? { ...params, attractorPos: mouseUniform } : params
+  const flowFieldUpdateCompute = updateFlowField
+    ? flowFieldFn({
+        rows,
+        columns,
+        depth,
+        flowFieldBuffer,
+        params: flowFieldUpdateParams,
+      }).compute(FLOW_FIELD_SIZE)
+    : null
 
   useFrame(async ({ gl }) => {
     // Update mouse uniform value if mousePosition is provided
