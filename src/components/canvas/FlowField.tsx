@@ -18,10 +18,12 @@ import {
   uv,
   vec4,
   vec3,
+  vec2,
   mul,
   Loop,
   int,
   float,
+  uniform,
 } from 'three/tsl'
 import colorPalettes from 'nice-color-palettes'
 
@@ -72,12 +74,16 @@ export const FlowField = ({
   flowFieldAngles = [1, 1, 0],
   updateFlowField = false,
   params = {},
+  mousePosition = null,
 }: any) => {
   const meshRef = useRef<any>(null)
   const gl = useThree((state) => state.gl) as any
   const { width, height } = useThree((state) => state.size)
 
   const FLOW_FIELD_SIZE = columns * rows * depth
+
+  // Create uniform for mouse position that can be updated each frame
+  const mouseUniform = useMemo(() => uniform(new THREE.Vector2(0.5, 0.5)), [])
 
   const flowFieldBuffer = useMemo(
     () => storage(new THREE.StorageInstancedBufferAttribute(FLOW_FIELD_SIZE, 1), 'float', FLOW_FIELD_SIZE),
@@ -261,26 +267,29 @@ export const FlowField = ({
     }
   }, [])
 
-  const flowFieldUpdate = flowFieldFn({
-    rows,
-    columns,
-    depth,
-    flowFieldBuffer,
-    params,
-  }).compute(FLOW_FIELD_SIZE)
-
   useFrame(async ({ gl }) => {
+    // Update mouse uniform value if mousePosition is provided
+    if (mousePosition) {
+      mouseUniform.value.set(mousePosition.current.x, mousePosition.current.y)
+      console.log('Updated mouse uniform:', mouseUniform.value.x, mouseUniform.value.y)
+    }
+
     // @ts-ignore
-    // await gl.computeAsync(flowFieldUpdate)
     await gl.computeAsync(computeUpdate)
 
     if (updateFlowField) {
-      // const flowFieldUpdate = flowFieldFn({
-      //   rows,
-      //   columns,
-      //   flowFieldBuffer,
-      //   params,
-      // }).compute(FLOW_FIELD_SIZE)
+      // Pass the uniform node to params - it will reactively update
+      const updatedParams = mousePosition
+        ? { ...params, attractorPos: mouseUniform }
+        : params
+
+      const flowFieldUpdate = flowFieldFn({
+        rows,
+        columns,
+        depth,
+        flowFieldBuffer,
+        params: updatedParams,
+      }).compute(FLOW_FIELD_SIZE)
       // @ts-ignore
       await gl.computeAsync(flowFieldUpdate)
     }

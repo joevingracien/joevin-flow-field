@@ -15,24 +15,30 @@
 
 import { FlowField } from "./FlowField";
 import { gravity8 } from "@/components/tsl/flow_field/attractor_repulsor_functions";
+import { useNormalizedMouse } from "@/hooks/useNormalizedMouse";
 
 /**
- * Gravity 8 - Hybrid Flow Field
+ * Gravity 8 - Hybrid Flow Field with Mouse Interaction
  *
  * Explores particle systems influenced by attractors, repulsors, and noise in a flow field.
  * Creates dynamic, organic patterns where particles are drawn toward or pushed away from
  * specific points while being influenced by simplex noise, creating flowing, gravitational-like behaviors.
  *
  * Key Features:
- * - Attractor influence: Particles drawn to specific points
- * - Repulsor influence: Particles pushed away from points
+ * - Interactive attractor: Particles drawn to mouse cursor position
+ * - Repulsor influence: Particles pushed away from static point
  * - Noise field: Organic variation through simplex noise
  * - Multi-influence blending: All forces combined for complex motion
- * - 524,288 particles (2^19) for rich visual density
+ * - 262,144 particles (2^18) for rich visual density
  *
  * @license Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
  */
 export const Gravity = () => {
+  const mousePosition = useNormalizedMouse(0.1);
+
+  // Debug logging
+  console.log('Mouse position:', mousePosition.current);
+
   return (
     <FlowField
       flowFieldFn={gravity8}
@@ -45,6 +51,7 @@ export const Gravity = () => {
       particleLifespan={1}
       particleDecay={0.001}
       updateFlowField={true}
+      mousePosition={mousePosition}
     />
   );
 };

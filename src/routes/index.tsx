@@ -30,6 +30,12 @@ class ErrorBoundary extends Component<
 function Home() {
   return (
     <section className="relative flex h-screen w-screen bg-black">
+      {/* Subtle under construction message */}
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+        <p className="text-center font-mono text-sm tracking-wider text-white/60">
+          ✦ under the stars ✦
+        </p>
+      </div>
       <ErrorBoundary
         fallback={
           <div className="flex h-full w-full items-center justify-center text-white/50">
@@ -46,13 +52,6 @@ function Home() {
           <Gravity />
         </WebGPUScene>
       </ErrorBoundary>
-
-      {/* Subtle under construction message */}
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-        <p className="text-center font-mono text-sm tracking-wider text-white/20">
-          ✦ under the stars ✦
-        </p>
-      </div>
     </section>
   );
 }
