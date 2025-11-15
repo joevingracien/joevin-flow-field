@@ -44,6 +44,7 @@ function Home() {
         }
       >
         <WebGPUScene
+          debug={true}
           style={{
             position: "fixed",
             inset: 0,

@@ -1,6 +1,6 @@
 import { Canvas } from '@react-three/fiber'
 
-import { AdaptiveDpr, Preload, StatsGl, OrthographicCamera } from '@react-three/drei'
+import { AdaptiveDpr, Preload, Stats, OrthographicCamera } from '@react-three/drei'
 
 import { useState } from 'react'
 
@@ -57,7 +57,7 @@ const WebGPUScene = ({ debug = false, frameloop = 'always', orthographic = false
 
       <ColorSpaceCorrection />
 
-      {debug ? <StatsGl className='fragments-supply__statsgl' /> : null}
+      {debug ? <Stats className='webgpu-stats' showPanel={0} /> : null}
 
       <OrthographicCamera makeDefault position={[0, 0, 1]} />
     </Canvas>

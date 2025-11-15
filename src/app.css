@@ -38,3 +38,15 @@ body {
     'opsz' 12,
     'wdth' 100;
 }
+
+/* WebGPU Stats Overlay - Force visibility */
+.webgpu-stats,
+.webgpu-stats canvas {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  z-index: 99999 !important;
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
