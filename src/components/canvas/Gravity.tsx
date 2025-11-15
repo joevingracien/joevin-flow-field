@@ -42,9 +42,9 @@ export const Gravity = () => {
       rows={1024}
       columns={1024}
       particlesCount={Math.pow(2, 18)}
-      particleScale={0.002}
-      particleOpacity={0.15}
-      particleSpeed={0.01}
+      particleScale={0.0008}
+      particleOpacity={0.1}
+      particleSpeed={0.008}
       particleLifespan={1}
       particleDecay={0.001}
       updateFlowField={true}
