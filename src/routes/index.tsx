@@ -29,9 +29,9 @@ class ErrorBoundary extends Component<
 
 function Home() {
   return (
-    <section className="relative flex h-screen w-screen bg-black">
+    <section className="relative h-screen w-screen bg-black">
       {/* Subtle under construction message */}
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+      <div className="pointer-events-none fixed top-0 left-0 right-0 bottom-0 z-10 flex h-screen w-screen items-center justify-center">
         <p className="text-center font-mono text-sm tracking-wider text-white/60">
           ✦ under the stars ✦
         </p>
@@ -44,7 +44,7 @@ function Home() {
         }
       >
         <WebGPUScene
-          debug={true}
+          debug={false}
           style={{
             position: "fixed",
             inset: 0,

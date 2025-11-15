@@ -72,7 +72,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       </head>
       <body
         suppressHydrationWarning
-        className="pointer-events-auto m-auto max-w-[1080px] overflow-hidden px-5 font-sans text-white antialiased"
+        className="pointer-events-auto overflow-hidden font-sans text-white antialiased"
       >
         {children}
         <Scripts />
