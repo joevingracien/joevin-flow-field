@@ -36,9 +36,6 @@ import { useNormalizedMouse } from "@/hooks/useNormalizedMouse";
 export const Gravity = () => {
   const mousePosition = useNormalizedMouse(0.1);
 
-  // Debug logging
-  console.log('Mouse position:', mousePosition.current);
-
   return (
     <FlowField
       flowFieldFn={gravity8}

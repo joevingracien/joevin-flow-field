@@ -1,9 +1,8 @@
 'use client'
 
 import { useFrame, useThree } from '@react-three/fiber'
-import { useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three/webgpu'
-
 import {
   select,
   atan,
@@ -26,30 +25,37 @@ import {
   uniform,
 } from 'three/tsl'
 import colorPalettes from 'nice-color-palettes'
+import type { FlowFieldProps } from './FlowField.types'
 
-export const hexToRgbArray = (hex: string): number[] => {
-  // @ts-ignore
+/**
+ * Converts hex color to RGB array [0-1]
+ */
+export const hexToRgbArray = (hex: string): number[] | null => {
   const rgb = hex.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i)
-
-  // @ts-ignore
   return rgb ? rgb.slice(1).map((n) => parseInt(n, 16) / 255) : null
 }
 
-const generateColorPalette = (particlesCount: number) => {
-  const allColors: any = []
+/**
+ * Generates a color palette for particles using nice-color-palettes
+ * @param particlesCount - Number of particles to generate colors for
+ * @returns Float32Array of RGB values
+ */
+const generateColorPalette = (particlesCount: number): Float32Array => {
+  const allColors: number[] = []
   const randomPalette = colorPalettes[Math.floor(Math.random() * colorPalettes.length)]
   let paletteIndex = -1
-  for (let i = 0; i < particlesCount; i += 5000) {
-    paletteIndex += 1
-    if (paletteIndex >= randomPalette.length) {
-      paletteIndex = 0
-    }
 
-    for (let j = 0; j < 5000; j++) {
-      const index = i + j
-      if (index < particlesCount) {
-        const c = hexToRgbArray(randomPalette[paletteIndex])
-        allColors.push(c[0], c[1], c[2])
+  const BATCH_SIZE = 5000
+
+  for (let i = 0; i < particlesCount; i += BATCH_SIZE) {
+    paletteIndex = (paletteIndex + 1) % randomPalette.length
+
+    const batchEnd = Math.min(i + BATCH_SIZE, particlesCount)
+    const color = hexToRgbArray(randomPalette[paletteIndex])
+
+    if (color) {
+      for (let j = i; j < batchEnd; j++) {
+        allColors.push(color[0], color[1], color[2])
       }
     }
   }
@@ -57,6 +63,12 @@ const generateColorPalette = (particlesCount: number) => {
   return new Float32Array(allColors)
 }
 
+/**
+ * FlowField - GPU-accelerated particle system with flow field simulation
+ *
+ * Uses WebGPU compute shaders for high-performance particle simulation.
+ * Supports interactive mouse control and custom TSL shader functions.
+ */
 export const FlowField = ({
   flowFieldFn,
   colorNodeFn,
@@ -71,25 +83,28 @@ export const FlowField = ({
   particleLifespan = 1,
   particleDecay = 0.001,
   randomise = false,
-  flowFieldAngles = [1, 1, 0],
+  flowFieldAngles = [1, 1, 0] as [number, number, number],
   updateFlowField = false,
   params = {},
   mousePosition = null,
-}: any) => {
-  const meshRef = useRef<any>(null)
-  const gl = useThree((state) => state.gl) as any
+}: FlowFieldProps) => {
+  const meshRef = useRef<THREE.InstancedMesh>(null)
+  const gl = useThree((state) => state.gl)
   const { width, height } = useThree((state) => state.size)
 
-  const FLOW_FIELD_SIZE = columns * rows * depth
+  // Calculate flow field size
+  const FLOW_FIELD_SIZE = useMemo(() => columns * rows * depth, [columns, rows, depth])
 
   // Create uniform for mouse position that can be updated each frame
   const mouseUniform = useMemo(() => uniform(new THREE.Vector2(0.5, 0.5)), [])
 
+  // Create storage buffer for flow field angles
   const flowFieldBuffer = useMemo(
     () => storage(new THREE.StorageInstancedBufferAttribute(FLOW_FIELD_SIZE, 1), 'float', FLOW_FIELD_SIZE),
     [FLOW_FIELD_SIZE],
   )
 
+  // Memoize compute shaders and mesh - only recreate when essential props change
   const [computeUpdate, mesh] = useMemo(() => {
     const flowFieldInitFn = flowFieldFn({
       rows,
@@ -116,14 +131,13 @@ export const FlowField = ({
     const opacityBuffer = storage(new THREE.StorageInstancedBufferAttribute(particlesCount, 1), 'float', particlesCount)
     const speedBuffer = storage(new THREE.StorageInstancedBufferAttribute(particlesCount, 1), 'float', particlesCount)
 
-    // Halton sequence for better particle distribution
-    // @ts-ignore
-    const halton = Fn(([index, base]) => {
-      let result = float(0.0).toVar()
-      let f = float(1.0).toVar()
-      let i = float(index).toVar()
+    // Halton sequence for better particle distribution (low-discrepancy sequence)
+    const halton = Fn(([index, base]: [any, any]) => {
+      const result = float(0.0).toVar()
+      const f = float(1.0).toVar()
+      const i = float(index).toVar()
 
-      Loop({ start: int(0), end: int(10), type: 'int', condition: '<' }, ({ i: loopIndex }) => {
+      Loop({ start: int(0), end: int(10), type: 'int', condition: '<' }, () => {
         const remainder = i.mod(base)
         f.assign(f.div(base))
         result.addAssign(f.mul(remainder))
@@ -138,13 +152,10 @@ export const FlowField = ({
       const basePosition = basePositionBuffer.element(instanceIndex)
       const position = positionBuffer.element(instanceIndex)
 
-      // Use Halton sequence for better distribution (0 to 1 range)
-      // @ts-ignore
-      const haltonX = halton(instanceIndex, float(2)).mul(2).sub(1) // Base 2
-      // @ts-ignore
-      const haltonY = halton(instanceIndex, float(3)).mul(2).sub(1) // Base 3
-      // @ts-ignore
-      const haltonZ = halton(instanceIndex, float(5)).mul(2).sub(1) // Base 5
+      // Use Halton sequence for better distribution (0 to 1 range, then scaled to -1 to 1)
+      const haltonX = halton(instanceIndex, float(2)).mul(2).sub(1) // Base 2 for X
+      const haltonY = halton(instanceIndex, float(3)).mul(2).sub(1) // Base 3 for Y
+      const haltonZ = halton(instanceIndex, float(5)).mul(2).sub(1) // Base 5 for Z
 
       const p = vec4(
         haltonX,
@@ -192,13 +203,10 @@ export const FlowField = ({
           .add(indexX)
         const angle = flowFieldBuffer.element(flowFieldIndex)
 
-        // Get the particles new position based on the angle provided
+        // Calculate particle velocity based on flow field angle
         const speed = speedBuffer.element(instanceIndex).mul(updateLifespan)
-        // @ts-ignore
         const x = select(flowFieldAngles[0] > 0, cos(angle).mul(speed), 0)
-        // @ts-ignore
         const y = select(flowFieldAngles[1] > 0, sin(angle).mul(speed), 0)
-        // @ts-ignore
         const z = select(flowFieldAngles[2] > 0, atan(angle).mul(speed), 0)
 
         updatePos.addAssign(vec3(x, y, z))
@@ -214,7 +222,6 @@ export const FlowField = ({
         updatePos.assign(basePosition.xyz)
         updateLifespan.assign(basePosition.w)
       })
-      // @ts-ignore
     })().compute(particlesCount)
 
     // As particles are only 1x1 pixels, we need a SpriteNodeMaterial to render larger particles
@@ -233,10 +240,9 @@ export const FlowField = ({
     material.opacityNode = opacityNodeFn
       ? opacityNodeFn(opacityBuffer)
       : Fn(() => {
-          // const lifespan = positionBuffer.element(instanceIndex).w
+          // Create circular particle shape using distance from center
           const circle = uv().xy.sub(0.7).length().step(0.3)
           return circle.mul(opacityBuffer.toAttribute())
-          // return circle.mul(lifespan).mul(opacityBuffer.toAttribute())
         })()
 
     // Create an instanced mesh to display the particles, this is required as part of THREE for fallback
@@ -244,14 +250,24 @@ export const FlowField = ({
     particlesMesh.frustumCulled = false
 
     return [particlesUpdate, particlesMesh]
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    // Core dependencies - mesh only recreates if these change
+    particlesCount,
+    rows,
+    columns,
+    depth,
+    flowFieldBuffer,
+    FLOW_FIELD_SIZE,
+  ])
 
+  // Randomize flow field periodically if enabled
   useEffect(() => {
     if (!randomise) {
       return
     }
 
-    const s = setInterval(async () => {
+    const intervalId = setInterval(async () => {
       const flowFieldUpdate = flowFieldFn({
         rows,
         columns,
@@ -263,35 +279,38 @@ export const FlowField = ({
     }, 5000)
 
     return () => {
-      clearInterval(s)
+      clearInterval(intervalId)
     }
-  }, [])
+  }, [randomise, flowFieldFn, rows, columns, depth, flowFieldBuffer, params, FLOW_FIELD_SIZE, gl])
+
+  // Memoize flow field update params to avoid recreating on every frame
+  const flowFieldUpdateParams = useMemo(() => {
+    return mousePosition ? { ...params, attractorPos: mouseUniform } : params
+  }, [params, mousePosition, mouseUniform])
+
+  // Memoize flow field update compute function
+  const flowFieldUpdateCompute = useMemo(() => {
+    if (!updateFlowField) return null
+
+    return flowFieldFn({
+      rows,
+      columns,
+      depth,
+      flowFieldBuffer,
+      params: flowFieldUpdateParams,
+    }).compute(FLOW_FIELD_SIZE)
+  }, [updateFlowField, rows, columns, depth, flowFieldBuffer, flowFieldUpdateParams, FLOW_FIELD_SIZE])
 
   useFrame(async ({ gl }) => {
     // Update mouse uniform value if mousePosition is provided
     if (mousePosition) {
       mouseUniform.value.set(mousePosition.current.x, mousePosition.current.y)
-      console.log('Updated mouse uniform:', mouseUniform.value.x, mouseUniform.value.y)
     }
 
-    // @ts-ignore
     await gl.computeAsync(computeUpdate)
 
-    if (updateFlowField) {
-      // Pass the uniform node to params - it will reactively update
-      const updatedParams = mousePosition
-        ? { ...params, attractorPos: mouseUniform }
-        : params
-
-      const flowFieldUpdate = flowFieldFn({
-        rows,
-        columns,
-        depth,
-        flowFieldBuffer,
-        params: updatedParams,
-      }).compute(FLOW_FIELD_SIZE)
-      // @ts-ignore
-      await gl.computeAsync(flowFieldUpdate)
+    if (updateFlowField && flowFieldUpdateCompute) {
+      await gl.computeAsync(flowFieldUpdateCompute)
     }
   })
 
