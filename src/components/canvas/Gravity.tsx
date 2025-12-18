@@ -14,7 +14,7 @@
 "use client";
 
 import { FlowField } from "./FlowField";
-import { gravity8 } from "@/components/tsl/flow_field/attractor_repulsor_functions";
+import { gravity8 } from "@/lib/tsl";
 import { useNormalizedMouse } from "@/hooks/useNormalizedMouse";
 
 /**
