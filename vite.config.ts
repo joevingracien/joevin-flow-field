@@ -17,7 +17,6 @@ export default defineConfig({
     port: 3000,
   },
 
-  // Three.js WebGPU/TSL optimizations
   resolve: {
     // Prevent duplicate Three.js instances (causes TSL currentStack errors)
     dedupe: ["three"],
@@ -26,12 +25,13 @@ export default defineConfig({
       "@": resolve(import.meta.dirname, "src"),
     },
   },
+
+  // Three.js WebGPU/TSL optimizations
   optimizeDeps: {
-    // Only pre-bundle base three for client
-    include: ["three"],
-    // Exclude WebGPU from pre-bundling - causes SSR errors
-    exclude: ["three/webgpu", "three/tsl"],
+    // Pre-bundle Three.js for faster dev startup
+    include: ["three", "three/webgpu", "three/tsl"],
   },
+
   build: {
     // Rolldown uses oxc for minification (Rust-based, fast)
     minify: true,

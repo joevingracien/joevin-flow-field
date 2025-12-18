@@ -1,4 +1,4 @@
-import type { NodeRepresentation } from 'three/webgpu'
+import type { Node } from 'three/webgpu'
 import type { MutableRefObject } from 'react'
 
 /**
@@ -6,13 +6,13 @@ import type { MutableRefObject } from 'react'
  */
 export interface FlowFieldProps {
   /** TSL function that defines the flow field behavior */
-  flowFieldFn: (props: FlowFieldFnProps) => NodeRepresentation
+  flowFieldFn: (props: FlowFieldFnProps) => Node
 
   /** Optional TSL function for custom particle colors */
-  colorNodeFn?: (angle: NodeRepresentation, speed: NodeRepresentation) => NodeRepresentation
+  colorNodeFn?: (angle: Node, speed: Node) => Node
 
   /** Optional TSL function for custom particle opacity */
-  opacityNodeFn?: (opacityBuffer: NodeRepresentation) => NodeRepresentation
+  opacityNodeFn?: (opacityBuffer: Node) => Node
 
   /** Number of rows in the flow field grid */
   rows?: number
@@ -64,7 +64,7 @@ export interface FlowFieldFnProps {
   rows: number
   columns: number
   depth: number
-  flowFieldBuffer: NodeRepresentation
+  flowFieldBuffer: Node
   params?: Record<string, any>
 }
 
