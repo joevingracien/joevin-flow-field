@@ -1,10 +1,9 @@
 'use client'
 
 import { useFrame, useThree } from '@react-three/fiber'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import * as THREE from 'three/webgpu'
 import {
-  select,
   atan,
   sin,
   cos,
@@ -17,8 +16,6 @@ import {
   uv,
   vec4,
   vec3,
-  vec2,
-  mul,
   Loop,
   int,
   float,
@@ -90,20 +87,34 @@ export const FlowField = ({
   mousePosition = null,
 }: FlowFieldProps) => {
   const meshRef = useRef<THREE.InstancedMesh>(null)
-  const gl = useThree((state) => state.gl)
+  const gl = useThree((state) => state.gl) as unknown as THREE.WebGPURenderer
   const { width, height } = useThree((state) => state.size)
 
   const FLOW_FIELD_SIZE = columns * rows * depth
 
-  // Keep useMemo for WebGPU resources - must be stable object references
-  const mouseUniform = useMemo(() => uniform(new THREE.Vector2(0.5, 0.5)), [])
-  const flowFieldBuffer = useMemo(
-    () => storage(new THREE.StorageInstancedBufferAttribute(FLOW_FIELD_SIZE, 1), 'float', FLOW_FIELD_SIZE),
-    [FLOW_FIELD_SIZE],
-  )
+  // Refs for WebGPU resources - initialized once
+  const mouseUniformRef = useRef<ReturnType<typeof uniform<THREE.Vector2>> | null>(null)
+  const flowFieldBufferRef = useRef<ReturnType<typeof storage> | null>(null)
+  const computeUpdateRef = useRef<any>(null)
+  const particlesMeshRef = useRef<THREE.InstancedMesh | null>(null)
 
-  // Memoize compute shaders and mesh - only recreate when essential props change
-  const [computeUpdate, mesh] = useMemo(() => {
+  // Initialize WebGPU resources on first render
+  if (!mouseUniformRef.current) {
+    mouseUniformRef.current = uniform(new THREE.Vector2(0.5, 0.5))
+  }
+  if (!flowFieldBufferRef.current) {
+    flowFieldBufferRef.current = storage(
+      new THREE.StorageInstancedBufferAttribute(FLOW_FIELD_SIZE, 1),
+      'float',
+      FLOW_FIELD_SIZE,
+    )
+  }
+
+  const mouseUniform = mouseUniformRef.current
+  const flowFieldBuffer = flowFieldBufferRef.current
+
+  // Initialize compute shaders and mesh on first render
+  if (!particlesMeshRef.current) {
     const flowFieldInitFn = flowFieldFn({
       rows,
       columns,
@@ -113,23 +124,22 @@ export const FlowField = ({
     }).compute(FLOW_FIELD_SIZE)
     gl.compute(flowFieldInitFn)
 
-    // Particles compute
-    const basePositionBuffer = storage(
-      new THREE.StorageInstancedBufferAttribute(particlesCount, 4),
-      'vec4',
-      particlesCount,
-    )
-    const positionBuffer = storage(new THREE.StorageInstancedBufferAttribute(particlesCount, 4), 'vec4', particlesCount)
-
-    // Assign a color buffer for each of the particles
+    const basePositionAttr = new THREE.StorageInstancedBufferAttribute(particlesCount, 4)
+    const positionAttr = new THREE.StorageInstancedBufferAttribute(particlesCount, 4)
     const colorArray = colorNodeFn ? new Float32Array(particlesCount * 3) : generateColorPalette(particlesCount)
-    const colorBuffer = storage(new THREE.StorageInstancedBufferAttribute(colorArray, 3), 'vec3', particlesCount)
+    const colorAttr = new THREE.StorageInstancedBufferAttribute(colorArray, 3)
+    const scaleAttr = new THREE.StorageInstancedBufferAttribute(particlesCount, 1)
+    const opacityAttr = new THREE.StorageInstancedBufferAttribute(particlesCount, 1)
+    const speedAttr = new THREE.StorageInstancedBufferAttribute(particlesCount, 1)
 
-    const scaleBuffer = storage(new THREE.StorageInstancedBufferAttribute(particlesCount, 1), 'float', particlesCount)
-    const opacityBuffer = storage(new THREE.StorageInstancedBufferAttribute(particlesCount, 1), 'float', particlesCount)
-    const speedBuffer = storage(new THREE.StorageInstancedBufferAttribute(particlesCount, 1), 'float', particlesCount)
+    const basePositionBuffer = storage(basePositionAttr, 'vec4', particlesCount)
+    const positionBuffer = storage(positionAttr, 'vec4', particlesCount)
+    const colorBuffer = storage(colorAttr, 'vec3', particlesCount)
+    const scaleBuffer = storage(scaleAttr, 'float', particlesCount)
+    const opacityBuffer = storage(opacityAttr, 'float', particlesCount)
+    const speedBuffer = storage(speedAttr, 'float', particlesCount)
 
-    // Halton sequence for better particle distribution (low-discrepancy sequence)
+    // Halton sequence for better particle distribution
     const halton = Fn(([index, base]: [any, any]) => {
       const result = float(0.0).toVar()
       const f = float(1.0).toVar()
@@ -150,17 +160,11 @@ export const FlowField = ({
       const basePosition = basePositionBuffer.element(instanceIndex)
       const position = positionBuffer.element(instanceIndex)
 
-      // Use Halton sequence for better distribution (0 to 1 range, then scaled to -1 to 1)
-      const haltonX = halton(instanceIndex, float(2)).mul(2).sub(1) // Base 2 for X
-      const haltonY = halton(instanceIndex, float(3)).mul(2).sub(1) // Base 3 for Y
-      const haltonZ = halton(instanceIndex, float(5)).mul(2).sub(1) // Base 5 for Z
+      const haltonX = halton(instanceIndex, float(2)).mul(2).sub(1)
+      const haltonY = halton(instanceIndex, float(3)).mul(2).sub(1)
+      const haltonZ = halton(instanceIndex, float(5)).mul(2).sub(1)
 
-      const p = vec4(
-        haltonX,
-        haltonY,
-        haltonZ,
-        hash(instanceIndex.mul(3)).mul(particleLifespan), // Keep hash for lifespan variation
-      )
+      const p = vec4(haltonX, haltonY, haltonZ, hash(instanceIndex.mul(3)).mul(particleLifespan))
       position.assign(p)
       basePosition.assign(p)
 
@@ -170,7 +174,6 @@ export const FlowField = ({
       const opacity = opacityBuffer.element(instanceIndex)
       opacity.assign(particleOpacity)
 
-      // randomise speed
       const speed = speedBuffer.element(instanceIndex)
       speed.assign(particleSpeed)
     })().compute(particlesCount)
@@ -188,29 +191,22 @@ export const FlowField = ({
       const particleAlive = updateLifespan.greaterThan(0)
 
       If(particleAlive, () => {
-        // Get the normalised position of the particle (between 0 and 1)
         const normalisedParticlePosition = updatePos.add(1).div(2)
         const indexX = floor(normalisedParticlePosition.x.div(xCellSize))
         const indexY = floor(normalisedParticlePosition.y.div(yCellSize))
         const indexZ = floor(normalisedParticlePosition.z.div(zCellSize))
 
-        // const flowFieldIndex = indexY.mul(columns).add(indexX)
-        const flowFieldIndex = indexZ
-          .mul(columns * rows)
-          .add(indexY.mul(columns))
-          .add(indexX)
+        const flowFieldIndex = indexZ.mul(columns * rows).add(indexY.mul(columns)).add(indexX)
         const angle = flowFieldBuffer.element(flowFieldIndex)
 
-        // Calculate particle velocity based on flow field angle
         const speed = speedBuffer.element(instanceIndex).mul(updateLifespan)
-        const x = select(flowFieldAngles[0] > 0, cos(angle).mul(speed), 0)
-        const y = select(flowFieldAngles[1] > 0, sin(angle).mul(speed), 0)
-        const z = select(flowFieldAngles[2] > 0, atan(angle).mul(speed), 0)
+        const x = flowFieldAngles[0] > 0 ? cos(angle).mul(speed) : float(0)
+        const y = flowFieldAngles[1] > 0 ? sin(angle).mul(speed) : float(0)
+        const z = flowFieldAngles[2] > 0 ? atan(angle).mul(speed) : float(0)
 
         updatePos.addAssign(vec3(x, y, z))
         updateLifespan.subAssign(particleDecay)
 
-        // If a color node is provided, use that
         if (colorNodeFn) {
           const updateColor = colorBuffer.element(instanceIndex)
           updateColor.assign(colorNodeFn(angle, speed))
@@ -222,7 +218,6 @@ export const FlowField = ({
       })
     })().compute(particlesCount)
 
-    // As particles are only 1x1 pixels, we need a SpriteNodeMaterial to render larger particles
     const material = new THREE.SpriteNodeMaterial({
       transparent: true,
       depthWrite: false,
@@ -230,7 +225,6 @@ export const FlowField = ({
       blending: THREE.AdditiveBlending,
     })
 
-    // Make the positionBufer available to the shader as the positionNode
     material.positionNode = positionBuffer.toAttribute()
     material.scaleNode = scaleBuffer.toAttribute()
     material.colorNode = colorBuffer.toAttribute()
@@ -238,26 +232,19 @@ export const FlowField = ({
     material.opacityNode = opacityNodeFn
       ? opacityNodeFn(opacityBuffer)
       : Fn(() => {
-          // Create circular particle shape using distance from center
           const circle = uv().xy.sub(0.7).length().step(0.3)
           return circle.mul(opacityBuffer.toAttribute())
         })()
 
-    // Create an instanced mesh to display the particles, this is required as part of THREE for fallback
-    const particlesMesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), material, particlesCount)
-    particlesMesh.frustumCulled = false
+    const mesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), material, particlesCount)
+    mesh.frustumCulled = false
 
-    return [particlesUpdate, particlesMesh]
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    // Core dependencies - mesh only recreates if these change
-    particlesCount,
-    rows,
-    columns,
-    depth,
-    flowFieldBuffer,
-    FLOW_FIELD_SIZE,
-  ])
+    computeUpdateRef.current = particlesUpdate
+    particlesMeshRef.current = mesh
+  }
+
+  const computeUpdate = computeUpdateRef.current
+  const mesh = particlesMeshRef.current!
 
   // Randomize flow field periodically if enabled
   useEffect(() => {
@@ -293,16 +280,17 @@ export const FlowField = ({
       }).compute(FLOW_FIELD_SIZE)
     : null
 
-  useFrame(async ({ gl }) => {
+  useFrame(async ({ gl: renderer }) => {
+    const gpuRenderer = renderer as unknown as THREE.WebGPURenderer
     // Update mouse uniform value if mousePosition is provided
     if (mousePosition) {
       mouseUniform.value.set(mousePosition.current.x, mousePosition.current.y)
     }
 
-    await gl.computeAsync(computeUpdate)
+    await gpuRenderer.computeAsync(computeUpdate)
 
     if (updateFlowField && flowFieldUpdateCompute) {
-      await gl.computeAsync(flowFieldUpdateCompute)
+      await gpuRenderer.computeAsync(flowFieldUpdateCompute)
     }
   })
 

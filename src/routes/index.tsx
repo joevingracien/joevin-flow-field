@@ -60,7 +60,7 @@ function Home() {
         <ClientOnly fallback={null}>
           <Suspense fallback={null}>
             <WebGPUScene
-              debug={false}
+              debug={true}
               style={{
                 position: "fixed",
                 inset: 0,
