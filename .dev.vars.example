@@ -1,0 +1,7 @@
+# Cloudflare Workers Secrets
+# Copy this file to .dev.vars for local development with wrangler
+# These variables are available in your Worker via env.*
+
+# Example secrets:
+# API_SECRET=your-secret-key
+# DATABASE_URL=postgres://...

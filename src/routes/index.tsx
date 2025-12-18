@@ -40,8 +40,20 @@ function Home() {
       </div>
       <ErrorBoundary
         fallback={
-          <div className="flex h-full w-full items-center justify-center text-white/50">
-            Failed to load 3D scene
+          <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-black p-8 text-center">
+            <div className="text-4xl">&#x26A0;</div>
+            <h2 className="text-xl font-medium text-white">WebGPU Not Available</h2>
+            <p className="max-w-md text-sm text-white/60">
+              This experience requires WebGPU. Please update your browser or try a different one.
+            </p>
+            <div className="mt-2 text-xs text-white/40">
+              <p>Supported in all major browsers:</p>
+              <ul className="mt-1 space-y-0.5">
+                <li>Chrome / Edge 113+</li>
+                <li>Firefox 141+</li>
+                <li>Safari 26+</li>
+              </ul>
+            </div>
           </div>
         }
       >
