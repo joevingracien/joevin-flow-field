@@ -34,7 +34,8 @@ import { useNormalizedMouse } from "@/hooks/useNormalizedMouse";
  * @license Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
  */
 export const Gravity = () => {
-  const mousePosition = useNormalizedMouse(0.1);
+  // Lower smoothFactor = smoother, more organic mouse following
+  const mousePosition = useNormalizedMouse(0.08);
 
   return (
     <FlowField
@@ -42,13 +43,18 @@ export const Gravity = () => {
       rows={1024}
       columns={1024}
       particlesCount={Math.pow(2, 18)}
-      particleScale={0.0008}
-      particleOpacity={0.1}
-      particleSpeed={0.008}
+      particleScale={0.001}
+      particleOpacity={0.12}
+      particleSpeed={0.007}
       particleLifespan={1}
       particleDecay={0.001}
       updateFlowField={true}
       mousePosition={mousePosition}
+      mouseEmitRatio={0.15} // 15% of particles spawn from mouse cursor (trail effect)
+      params={{
+        swirlAmount: 0.55, // How much particles spiral (0 = direct, 1 = orbit)
+        noiseScale: 4.0, // Organic flow field variation
+      }}
     />
   );
 };

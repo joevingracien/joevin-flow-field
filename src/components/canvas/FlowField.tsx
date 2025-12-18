@@ -20,6 +20,7 @@ import {
   int,
   float,
   uniform,
+  time,
 } from 'three/tsl'
 import colorPalettes from 'nice-color-palettes'
 import type { FlowFieldProps } from './FlowField.types'
@@ -85,6 +86,7 @@ export const FlowField = ({
   updateFlowField = false,
   params = {},
   mousePosition = null,
+  mouseEmitRatio = 0,
 }: FlowFieldProps) => {
   const meshRef = useRef<THREE.InstancedMesh>(null)
   const gl = useThree((state) => state.gl) as unknown as THREE.WebGPURenderer
@@ -174,8 +176,11 @@ export const FlowField = ({
       const opacity = opacityBuffer.element(instanceIndex)
       opacity.assign(particleOpacity)
 
+      // Per-particle speed variation: 50% to 150% of base speed
+      // This creates a mix of fast and slow particles for organic feel
+      const speedVariation = hash(instanceIndex.add(7777)).mul(1.0).add(0.5) // Range: 0.5 to 1.5
       const speed = speedBuffer.element(instanceIndex)
-      speed.assign(particleSpeed)
+      speed.assign(float(particleSpeed).mul(speedVariation))
     })().compute(particlesCount)
     gl.compute(particlesInitFn)
 
@@ -183,7 +188,7 @@ export const FlowField = ({
     const yCellSize = 1 / rows
     const zCellSize = 1 / depth
 
-    // Compute update
+    // Compute update with per-particle noise for organic movement
     const particlesUpdate = Fn(() => {
       const updatePos = positionBuffer.element(instanceIndex).xyz
       const updateLifespan = positionBuffer.element(instanceIndex).w
@@ -197,14 +202,38 @@ export const FlowField = ({
         const indexZ = floor(normalisedParticlePosition.z.div(zCellSize))
 
         const flowFieldIndex = indexZ.mul(columns * rows).add(indexY.mul(columns)).add(indexX)
-        const angle = flowFieldBuffer.element(flowFieldIndex)
+        const baseAngle = flowFieldBuffer.element(flowFieldIndex)
 
-        const speed = speedBuffer.element(instanceIndex).mul(updateLifespan)
-        const x = flowFieldAngles[0] > 0 ? cos(angle).mul(speed) : float(0)
-        const y = flowFieldAngles[1] > 0 ? sin(angle).mul(speed) : float(0)
-        const z = flowFieldAngles[2] > 0 ? atan(angle).mul(speed) : float(0)
+        // Per-particle unique offset using hash of instanceIndex
+        // This ensures each particle has its own "personality"
+        const particleHash1 = hash(instanceIndex)
+        const particleHash2 = hash(instanceIndex.add(12345))
 
-        updatePos.addAssign(vec3(x, y, z))
+        // Time-varying noise offset unique to each particle
+        // Creates organic wobble that's different for every particle
+        const timeOffset = time.mul(2.0).add(particleHash1.mul(100.0))
+        const noiseOffset = sin(timeOffset).mul(0.3).add(cos(timeOffset.mul(1.7)).mul(0.2))
+
+        // Apply per-particle angle perturbation
+        const angle = baseAngle.add(noiseOffset.mul(particleHash2.sub(0.5).mul(2.0)))
+
+        // Dynamic speed modulation - each particle pulses at its own rhythm
+        const speedPulse = sin(time.mul(1.5).add(particleHash1.mul(50.0))).mul(0.3).add(1.0) // Range: 0.7 to 1.3
+        const baseSpeed = speedBuffer.element(instanceIndex)
+        const speed = baseSpeed.mul(updateLifespan).mul(speedPulse)
+
+        // Base movement from flow field
+        const baseX = flowFieldAngles[0] > 0 ? cos(angle).mul(speed) : float(0)
+        const baseY = flowFieldAngles[1] > 0 ? sin(angle).mul(speed) : float(0)
+        const baseZ = flowFieldAngles[2] > 0 ? atan(angle).mul(speed) : float(0)
+
+        // Add subtle brownian jitter (random walk) for organic feel
+        // Uses time-based hash for pseudo-random per-frame variation
+        const jitterStrength = speed.mul(0.15)
+        const jitterX = hash(instanceIndex.add(floor(time.mul(60.0)))).sub(0.5).mul(jitterStrength)
+        const jitterY = hash(instanceIndex.add(floor(time.mul(60.0)).add(999))).sub(0.5).mul(jitterStrength)
+
+        updatePos.addAssign(vec3(baseX.add(jitterX), baseY.add(jitterY), baseZ))
         updateLifespan.subAssign(particleDecay)
 
         if (colorNodeFn) {
@@ -213,8 +242,28 @@ export const FlowField = ({
         }
       }).Else(() => {
         const basePosition = basePositionBuffer.element(instanceIndex)
-        updatePos.assign(basePosition.xyz)
-        updateLifespan.assign(basePosition.w)
+
+        // Determine if this particle should spawn from mouse or base position
+        // Use a time-varying hash so different particles spawn from mouse over time
+        const spawnHash = hash(instanceIndex.add(floor(time.mul(10.0))))
+        const spawnFromMouse = spawnHash.lessThan(mouseEmitRatio)
+
+        If(spawnFromMouse, () => {
+          // Convert mouse position from (0-1) to particle space (-1 to 1)
+          const mouseX = mouseUniform.x.mul(2.0).sub(1.0)
+          const mouseY = mouseUniform.y.mul(2.0).sub(1.0)
+
+          // Add scatter/spread around mouse for organic trail effect
+          const scatterX = hash(instanceIndex.add(floor(time.mul(60.0)))).sub(0.5).mul(0.15)
+          const scatterY = hash(instanceIndex.add(floor(time.mul(60.0)).add(777))).sub(0.5).mul(0.15)
+
+          updatePos.assign(vec3(mouseX.add(scatterX), mouseY.add(scatterY), float(0)))
+          // Shorter lifespan for mouse-spawned particles (trail fades faster)
+          updateLifespan.assign(hash(instanceIndex.mul(7)).mul(particleLifespan).mul(0.6))
+        }).Else(() => {
+          updatePos.assign(basePosition.xyz)
+          updateLifespan.assign(basePosition.w)
+        })
       })
     })().compute(particlesCount)
 

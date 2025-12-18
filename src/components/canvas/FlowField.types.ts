@@ -55,6 +55,9 @@ export interface FlowFieldProps {
 
   /** Mouse position ref for interactive flow fields */
   mousePosition?: MutableRefObject<{ x: number; y: number }> | null
+
+  /** Ratio of particles that spawn from mouse position (0-1). Creates a trail effect. */
+  mouseEmitRatio?: number
 }
 
 /**

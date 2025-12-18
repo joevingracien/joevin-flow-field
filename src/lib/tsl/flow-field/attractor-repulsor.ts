@@ -1,24 +1,20 @@
-import { Fn, instanceIndex, floor, float, vec2, atan, mul, PI, time } from 'three/tsl'
+import { Fn, instanceIndex, floor, float, vec2, vec3, atan, PI, time, length, smoothstep, mix, sin, cos } from 'three/tsl'
 import { simplexNoise3d } from '@/lib/tsl/noise'
 
 /**
- * Gravity 8 - Hybrid flow field with attractors, repulsors, and noise
+ * Gravity 8 - Organic vortex flow field with mouse attractor
  *
- * This function creates a complex flow field that combines:
- * - Attractor influence: Particles are drawn toward a specific point
- * - Repulsor influence: Particles are pushed away from another point
- * - Noise influence: Organic variation through simplex noise
- *
- * All influences are blended together to create rich, varied motion patterns.
+ * Creates a spiral/vortex pattern toward the attractor with organic noise.
+ * The key is blending radial (toward) and tangential (perpendicular) movement
+ * to create a swirling, drain-like effect rather than straight-line convergence.
  */
 export const gravity8 = Fn((props: any) => {
   const { rows, columns, flowFieldBuffer, params } = props
   const {
     attractorPos = vec2(0.5, 0.5),
     repulsorPos = vec2(0.2, 0.8),
-    strength = 2.0,
-    noiseScale = 8.0,
-    blendFactor = 0.5,
+    swirlAmount = 0.6,
+    noiseScale = 4.0,
   } = params || {}
 
   const x = floor(float(instanceIndex.mod(columns)))
@@ -26,20 +22,41 @@ export const gravity8 = Fn((props: any) => {
   const angle = flowFieldBuffer.element(instanceIndex)
   const pos = vec2(x.div(columns), y.div(rows))
 
-  // Attractor influence
+  // Vector to attractor
   const toAttractor = attractorPos.sub(pos)
-  const attractorAngle = atan(toAttractor.y, toAttractor.x).mul(strength)
+  const distToAttractor = length(toAttractor).max(0.001)
 
-  // Repulsor influence
+  // Radial angle (toward attractor)
+  const radialAngle = atan(toAttractor.y, toAttractor.x)
+
+  // Tangential angle (perpendicular - creates swirl)
+  const tangentialAngle = radialAngle.add(PI.mul(0.5))
+
+  // Dynamic swirl: more spiral when closer to attractor
+  const proximityFactor = smoothstep(0.5, 0.0, distToAttractor)
+  const dynamicSwirl = mix(float(swirlAmount).mul(0.4), float(swirlAmount), proximityFactor)
+
+  // Blend radial and tangential for vortex effect
+  const vortexAngle = mix(radialAngle, tangentialAngle, dynamicSwirl)
+
+  // Repulsor influence (push away)
   const fromRepulsor = pos.sub(repulsorPos)
-  const repulsorAngle = atan(fromRepulsor.y, fromRepulsor.x).mul(mul(strength, 0.5))
+  const distToRepulsor = length(fromRepulsor).max(0.001)
+  const repulsorAngle = atan(fromRepulsor.y, fromRepulsor.x)
+  const repulsorWeight = float(0.15).div(distToRepulsor.add(0.5))
 
-  // Noise field influence
+  // Base noise for organic variation
   // @ts-ignore
-  const noiseAngle = simplexNoise3d(pos.mul(noiseScale).add(time)).mul(PI.mul(2))
+  const noiseVal = simplexNoise3d(vec3(pos.mul(noiseScale), time.mul(0.15)))
+  const noiseAngle = noiseVal.mul(PI.mul(2))
 
-  // Blend all influences
-  const blendedAngle = attractorAngle.mul(blendFactor).add(repulsorAngle.mul(0.3)).add(noiseAngle.mul(0.2))
+  // Vector-based blending (avoids angle discontinuities)
+  const attractorVec = vec2(cos(vortexAngle), sin(vortexAngle)).mul(0.7)
+  const repulsorVec = vec2(cos(repulsorAngle), sin(repulsorAngle)).mul(repulsorWeight)
+  const noiseVec = vec2(cos(noiseAngle), sin(noiseAngle)).mul(0.3)
 
-  angle.assign(blendedAngle)
+  const combinedVec = attractorVec.add(repulsorVec).add(noiseVec)
+  const finalAngle = atan(combinedVec.y, combinedVec.x)
+
+  angle.assign(finalAngle)
 })
