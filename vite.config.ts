@@ -26,8 +26,8 @@ export default defineConfig({
     include: ["three", "three/webgpu", "three/tsl"],
   },
   build: {
-    // Use terser for better Three.js TSL compatibility than esbuild
-    minify: "terser",
+    // Rolldown uses oxc for minification (Rust-based, fast)
+    minify: true,
   },
 
   plugins: [
