@@ -1,7 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
-import WebGPUScene from "@/components/canvas/WebGPUScene";
-import Gravity from "@/components/canvas/Gravity";
-import { Component, ReactNode } from "react";
+import { createFileRoute, ClientOnly } from "@tanstack/react-router";
+import { Component, ReactNode, Suspense, lazy } from "react";
+
+// Lazy load WebGPU components - combined with ClientOnly prevents SSR issues
+const WebGPUScene = lazy(() => import("../components/canvas/WebGPUScene"));
+const Gravity = lazy(() => import("../components/canvas/Gravity"));
 
 export const Route = createFileRoute("/")({ component: Home });
 
@@ -43,15 +45,19 @@ function Home() {
           </div>
         }
       >
-        <WebGPUScene
-          debug={false}
-          style={{
-            position: "fixed",
-            inset: 0,
-          }}
-        >
-          <Gravity />
-        </WebGPUScene>
+        <ClientOnly fallback={null}>
+          <Suspense fallback={null}>
+            <WebGPUScene
+              debug={false}
+              style={{
+                position: "fixed",
+                inset: 0,
+              }}
+            >
+              <Gravity />
+            </WebGPUScene>
+          </Suspense>
+        </ClientOnly>
       </ErrorBoundary>
     </section>
   );

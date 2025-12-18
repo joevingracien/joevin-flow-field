@@ -1,4 +1,5 @@
 // vite.config.ts
+import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
@@ -20,10 +21,16 @@ export default defineConfig({
   resolve: {
     // Prevent duplicate Three.js instances (causes TSL currentStack errors)
     dedupe: ["three"],
+    // Explicit alias for dependency scanning
+    alias: {
+      "@": resolve(import.meta.dirname, "src"),
+    },
   },
   optimizeDeps: {
-    // Pre-bundle Three.js for faster dev startup
-    include: ["three", "three/webgpu", "three/tsl"],
+    // Only pre-bundle base three for client
+    include: ["three"],
+    // Exclude WebGPU from pre-bundling - causes SSR errors
+    exclude: ["three/webgpu", "three/tsl"],
   },
   build: {
     // Rolldown uses oxc for minification (Rust-based, fast)
