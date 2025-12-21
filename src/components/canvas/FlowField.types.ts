@@ -58,6 +58,18 @@ export interface FlowFieldProps {
 
   /** Ratio of particles that spawn from mouse position (0-1). Creates a trail effect. */
   mouseEmitRatio?: number
+
+  /** Radius of mouse repulsion effect (particles pushed away). 0 = disabled. */
+  mouseRepulsionRadius?: number
+
+  /** Strength of mouse repulsion force */
+  mouseRepulsionStrength?: number
+
+  /** How much particles swirl around cursor vs push away (0 = direct push, 1 = full orbit) */
+  mouseRepulsionSwirl?: number
+
+  /** How much particle velocity affects spread (higher = faster particles scatter more) */
+  mouseRepulsionSpreadFactor?: number
 }
 
 /**

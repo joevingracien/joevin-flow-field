@@ -16,11 +16,14 @@ import {
   uv,
   vec4,
   vec3,
+  vec2,
   Loop,
   int,
   float,
   uniform,
   time,
+  length,
+  max,
 } from 'three/tsl'
 import colorPalettes from 'nice-color-palettes'
 import type { FlowFieldProps } from './FlowField.types'
@@ -87,6 +90,10 @@ export const FlowField = ({
   params = {},
   mousePosition = null,
   mouseEmitRatio = 0,
+  mouseRepulsionRadius = 0,
+  mouseRepulsionStrength = 0.03,
+  mouseRepulsionSwirl = 0.4,
+  mouseRepulsionSpreadFactor = 15,
 }: FlowFieldProps) => {
   const meshRef = useRef<THREE.InstancedMesh>(null)
   const gl = useThree((state) => state.gl) as unknown as THREE.WebGPURenderer
@@ -233,7 +240,70 @@ export const FlowField = ({
         const jitterX = hash(instanceIndex.add(floor(time.mul(60.0)))).sub(0.5).mul(jitterStrength)
         const jitterY = hash(instanceIndex.add(floor(time.mul(60.0)).add(999))).sub(0.5).mul(jitterStrength)
 
-        updatePos.addAssign(vec3(baseX.add(jitterX), baseY.add(jitterY), baseZ))
+        // Mouse repulsion - organic flow around cursor
+        const repulsionX = float(0).toVar()
+        const repulsionY = float(0).toVar()
+
+        If(float(mouseRepulsionRadius).greaterThan(0), () => {
+          // Convert mouse position from (0-1) to particle space (-1 to 1)
+          const mouseWorldX = mouseUniform.x.mul(2.0).sub(1.0)
+          const mouseWorldY = mouseUniform.y.mul(2.0).sub(1.0)
+
+          // Vector from mouse to particle
+          const awayX = updatePos.x.sub(mouseWorldX)
+          const awayY = updatePos.y.sub(mouseWorldY)
+          const distToMouse = length(vec2(awayX, awayY))
+          const normalizedDist = max(distToMouse, float(0.001))
+
+          // Normalize away vector
+          const dirX = awayX.div(normalizedDist)
+          const dirY = awayY.div(normalizedDist)
+
+          // SOFT POLYNOMIAL FALLOFF - much gentler than 1/distance
+          // Uses cubic falloff: (1 - d/r)^3 for ultra-smooth gradient
+          const normalizedRadius = distToMouse.div(float(mouseRepulsionRadius))
+          const softFalloff = max(float(1.0).sub(normalizedRadius), float(0.0))
+          const cubicFalloff = softFalloff.mul(softFalloff).mul(softFalloff) // cubic for extra smoothness
+
+          // VELOCITY-BASED SPREAD - faster particles spread more
+          // This creates dynamic scatter where high-velocity particles deflect more
+          const particleVelocity = speed // already computed above
+          const velocityMultiplier = float(1.0).add(particleVelocity.mul(mouseRepulsionSpreadFactor))
+
+          // TANGENTIAL FLOW - particles swirl around cursor instead of just fleeing
+          // Perpendicular vector for swirl effect (rotate 90 degrees)
+          const tangentX = dirY.negate() // -y component
+          const tangentY = dirX // x component
+
+          // Mix radial (away) and tangential (around) based on swirlRatio
+          // Higher swirl = more flowing around, lower = more direct push
+          const swirlAmount = float(mouseRepulsionSwirl)
+          const radialAmount = float(1.0).sub(swirlAmount)
+
+          const flowDirX = dirX.mul(radialAmount).add(tangentX.mul(swirlAmount))
+          const flowDirY = dirY.mul(radialAmount).add(tangentY.mul(swirlAmount))
+
+          // ADD TURBULENCE - organic noise to the repulsion direction
+          // Per-particle, time-varying noise for chaotic organic feel
+          const turbulenceTime = time.mul(3.0).add(particleHash1.mul(50.0))
+          const turbulenceNoise = sin(turbulenceTime).mul(cos(turbulenceTime.mul(1.3))).mul(0.4)
+
+          // Apply turbulence as rotation of the flow direction
+          const turbulenceAngle = turbulenceNoise.mul(0.5) // max ±0.2 radians
+          const cosT = cos(turbulenceAngle)
+          const sinT = sin(turbulenceAngle)
+          const turbulentDirX = flowDirX.mul(cosT).sub(flowDirY.mul(sinT))
+          const turbulentDirY = flowDirX.mul(sinT).add(flowDirY.mul(cosT))
+
+          // FINAL FORCE - combine all factors
+          // cubicFalloff provides soft gradient, velocityMultiplier adds spread dynamics
+          const pushStrength = cubicFalloff.mul(mouseRepulsionStrength).mul(velocityMultiplier)
+
+          repulsionX.assign(turbulentDirX.mul(pushStrength))
+          repulsionY.assign(turbulentDirY.mul(pushStrength))
+        })
+
+        updatePos.addAssign(vec3(baseX.add(jitterX).add(repulsionX), baseY.add(jitterY).add(repulsionY), baseZ))
         updateLifespan.subAssign(particleDecay)
 
         if (colorNodeFn) {

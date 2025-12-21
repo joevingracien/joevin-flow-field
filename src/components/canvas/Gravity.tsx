@@ -51,6 +51,10 @@ export const Gravity = () => {
       updateFlowField={true}
       mousePosition={mousePosition}
       mouseEmitRatio={0.15} // 15% of particles spawn from mouse cursor (trail effect)
+      mouseRepulsionRadius={0.18} // Larger radius for softer gradient (no harsh edge)
+      mouseRepulsionStrength={0.015} // Gentler force - cubic falloff does the heavy lifting
+      mouseRepulsionSwirl={0.45} // Particles flow around cursor, not just away
+      mouseRepulsionSpreadFactor={20} // Faster particles scatter more dramatically
       params={{
         swirlAmount: 0.55, // How much particles spiral (0 = direct, 1 = orbit)
         noiseScale: 4.0, // Organic flow field variation
