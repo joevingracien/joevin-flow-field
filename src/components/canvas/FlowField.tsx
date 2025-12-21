@@ -24,7 +24,11 @@ import {
   time,
   length,
   max,
+  smoothstep,
+  clamp,
+  saturate,
 } from 'three/tsl'
+import { cosinePalette } from '@/lib/tsl'
 import colorPalettes from 'nice-color-palettes'
 import type { FlowFieldProps } from './FlowField.types'
 
@@ -141,12 +145,15 @@ export const FlowField = ({
     const opacityAttr = new THREE.StorageInstancedBufferAttribute(particlesCount, 1)
     const speedAttr = new THREE.StorageInstancedBufferAttribute(particlesCount, 1)
 
+    const velocityAttr = new THREE.StorageInstancedBufferAttribute(particlesCount, 1)
+
     const basePositionBuffer = storage(basePositionAttr, 'vec4', particlesCount)
     const positionBuffer = storage(positionAttr, 'vec4', particlesCount)
     const colorBuffer = storage(colorAttr, 'vec3', particlesCount)
     const scaleBuffer = storage(scaleAttr, 'float', particlesCount)
     const opacityBuffer = storage(opacityAttr, 'float', particlesCount)
     const speedBuffer = storage(speedAttr, 'float', particlesCount)
+    const velocityBuffer = storage(velocityAttr, 'float', particlesCount)
 
     // Halton sequence for better particle distribution
     const halton = Fn(([index, base]: [any, any]) => {
@@ -303,7 +310,13 @@ export const FlowField = ({
           repulsionY.assign(turbulentDirY.mul(pushStrength))
         })
 
-        updatePos.addAssign(vec3(baseX.add(jitterX).add(repulsionX), baseY.add(jitterY).add(repulsionY), baseZ))
+        // Track velocity for dynamic coloring
+        const deltaX = baseX.add(jitterX).add(repulsionX)
+        const deltaY = baseY.add(jitterY).add(repulsionY)
+        const velocityMag = length(vec2(deltaX, deltaY))
+        velocityBuffer.element(instanceIndex).assign(velocityMag)
+
+        updatePos.addAssign(vec3(deltaX, deltaY, baseZ))
         updateLifespan.subAssign(particleDecay)
 
         if (colorNodeFn) {
@@ -346,12 +359,49 @@ export const FlowField = ({
 
     material.positionNode = positionBuffer.toAttribute()
     material.scaleNode = scaleBuffer.toAttribute()
-    material.colorNode = colorBuffer.toAttribute()
+
+    // Dynamic Aurora color system
+    material.colorNode = colorNodeFn
+      ? colorBuffer.toAttribute()
+      : Fn(() => {
+          const velocity = velocityBuffer.toAttribute()
+          const position = positionBuffer.toAttribute()
+
+          // Velocity factor - faster = hotter
+          const normalizedVel = clamp(velocity.div(float(particleSpeed).mul(2.0)), float(0), float(1))
+
+          // Mouse proximity
+          const mouseWorldX = mouseUniform.x.mul(2.0).sub(1.0)
+          const mouseWorldY = mouseUniform.y.mul(2.0).sub(1.0)
+          const distToMouse = length(vec2(position.x.sub(mouseWorldX), position.y.sub(mouseWorldY)))
+          const mouseHeat = smoothstep(float(0.25), float(0.0), distToMouse)
+
+          // Lava colors - darker, more saturated
+          const darkRed = vec3(0.4, 0.05, 0.02)   // Deep ember
+          const brightOrange = vec3(0.9, 0.25, 0.05) // Hot orange
+          const hotYellow = vec3(1.0, 0.5, 0.1)   // Molten orange-yellow
+
+          // Blend based on velocity + mouse heat
+          const heat = clamp(normalizedVel.add(mouseHeat.mul(0.5)), float(0), float(1))
+
+          // Two-stage blend: red -> orange -> yellow
+          const midPoint = float(0.5)
+          const lowBlend = smoothstep(float(0), midPoint, heat)
+          const highBlend = smoothstep(midPoint, float(1), heat)
+
+          // Mix colors
+          const color1 = darkRed.mul(float(1).sub(lowBlend)).add(brightOrange.mul(lowBlend))
+          const finalColor = color1.mul(float(1).sub(highBlend)).add(hotYellow.mul(highBlend))
+
+          return finalColor
+        })()
 
     material.opacityNode = opacityNodeFn
       ? opacityNodeFn(opacityBuffer)
       : Fn(() => {
-          const circle = uv().xy.sub(0.7).length().step(0.3)
+          // Soft circle - subtle gradient edge instead of hard cutoff
+          const dist = length(uv().sub(vec2(0.5, 0.5)))
+          const circle = smoothstep(float(0.5), float(0.3), dist)
           return circle.mul(opacityBuffer.toAttribute())
         })()
 
